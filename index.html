@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>The Silent Departure | A Chronicle of Biodiversity Loss</title>
+
+    <style>
+        /* ======================================================
+           GLOBAL STYLE & THEME
+           ====================================================== */
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            background: #08080a; /* Deepened the black for higher contrast */
+            color: #d1d1d1;
+            font-family: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.8;
+        }
+
+        strong { color: #ff4d4d; font-weight: 600; }
+        em { color: #888; font-style: italic; }
+
+        /* ======================================================
+           IMMERSIVE HERO SECTION
+           ====================================================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10%;
+            text-align: center;
+            background: 
+                linear-gradient(to bottom, rgba(8,8,10,0.4) 0%, rgba(8,8,10,1) 95%),
+                url("images/hero-background.jpg") center/cover no-repeat;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 800;
+            letter-spacing: -3px;
+            color: #fff;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .hero-subtitle {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #ff4d4d;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .story-block {
+            max-width: 800px;
+            margin-top: 60px;
+            font-size: 1.25rem;
+            color: #b0b0b0;
+            font-weight: 300;
+        }
+
+        .story-image {
+            width: 500px;
+            max-width: 90%;
+            border-radius: 4px;
+            margin: 50px 0;
+            filter: grayscale(30%);
+            transition: filter 0.5s ease;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.8);
+        }
+        .story-image:hover { filter: grayscale(0%); }
+
+        /* ======================================================
+           THE DATA MISSION (Replaces "Dataset Note")
+           ====================================================== */
+        .mission-statement {
+            margin-top: 60px;
+            max-width: 800px;
+            padding: 40px;
+            border-left: 2px solid #ff4d4d;
+            background: rgba(255,255,255,0.02);
+            text-align: left;
+        }
+
+        .mission-statement h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        /* ======================================================
+           NARRATIVE SECTIONS
+           ====================================================== */
+        section {
+            padding: 120px 8%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-intro {
+            max-width: 800px;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .section-intro h2 {
+            margin-bottom: 20px;
+            font-size: 3rem;
+            color: #fff;
+            letter-spacing: -1.5px;
+        }
+
+        .section-intro p {
+            font-size: 1.15rem;
+            color: #999;
+        }
+
+        /* ======================================================
+           CHART CANVAS
+           ====================================================== */
+        .chart-container {
+            width: 100%;
+            max-width: 1400px;
+            height: 75vh;
+            position: relative;
+            background: #0d0d0f;
+            border: 1px solid #1a1a1c;
+            border-radius: 8px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* ======================================================
+           TRANSITION QUOTES
+           ====================================================== */
+        .narrative-bridge {
+            padding: 100px 0;
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+            font-style: italic;
+            font-size: 1.5rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .narrative-bridge b { color: #ff4d4d; font-style: normal; }
+
+        /* ======================================================
+           FOOTER
+           ====================================================== */
+        footer {
+            padding: 100px 10%;
+            border-top: 1px solid #1a1a1c;
+            text-align: center;
+            color: #444;
+            font-size: 0.9rem;
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            padding: 15px;
+            background: rgba(10, 10, 12, 0.95);
+            border: 1px solid #ff4d4d;
+            color: white;
+            font-size: 13px;
+            border-radius: 2px;
+            z-index: 1000;
+        }
+
+        .scroll-hint {
+            margin-top: 40px;
+            color: #444;
+            letter-spacing: 3px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="hero">
+        <div class="hero-subtitle">The Sixth Mass Extinction</div>
+        <h1>The Silent Departure</h1>
+
+        <div class="story-block">
+            <p>
+                Extinction is often reduced to a statistic—a line on a graph or a percentage in a report. 
+                But every data point represents a <strong>silent departure</strong> from the canvas of our world.
+            </p>
+
+            <p>
+                In 1970, the <strong>Spoon-billed Sandpiper</strong> was a common sight across Asia's mudflats. 
+                Today, it is a ghost. With only <strong>~400 individuals</strong> remaining, this tiny traveler has 
+                witnessed the world change until there was no place left to land.
+            </p>
+
+            <img src="images/sandpiper.jpg" class="story-image" alt="Spoon-billed Sandpiper">
+
+            <p>
+                This is not just the story of one bird. It is a chronicle of a planet in transition. 
+                We invite you to explore the data behind the loss—from the <strong>acceleration of time</strong> 
+                to the <strong>roots of human impact</strong>.
+            </p>
+        </div>
+
+        <div class="mission-statement">
+            <h3>Our Methodology</h3>
+            <p>
+                Our narrative is built upon the <span class="highlight">IUCN Red List</span>, the world's most comprehensive 
+                inventory of the global conservation status of biological species. We filtered over <strong>159,000 records</strong> 
+                to isolate 350+ animal species with confirmed extinction status and geographical data. This data reveals 
+                not just a loss of life, but a breakdown of an <span class="highlight">interconnected living system</span>.
+            </p>
+        </div>
+
+        <div class="scroll-hint">Scroll to witness the timeline ↓</div>
+    </header>
+
+    <section id="timeline-section">
+        <div class="section-intro">
+            <h2>The Pace of Loss</h2>
+            <p>
+                The pace of disappearance is no longer gradual. As we entered the 21st century, the 
+                frequency of extinction assessments reached a fever pitch. 
+            </p>
+        </div>
+        <div id="timeline-container" class="chart-container"></div>
+        
+        <div class="narrative-bridge">
+            "Loss is not just a matter of time; it is a matter of <b>place</b>."
+        </div>
+    </section>
+
+    <section id="map-section">
+        <div class="section-intro">
+            <h2>Mapping the Void</h2>
+            <p>
+                Extinction leaves a scar on the map. From the isolated islands of the Pacific to the 
+                industrial heartlands of the West, the geography of loss reveals the heavy 
+                footprint of human expansion.
+            </p>
+        </div>
+        <div id="map-container" class="chart-container"></div>
+
+        <div class="narrative-bridge">
+            "To understand who we are losing, we must look at the <b>tree of life</b> itself."
+        </div>
+    </section>
+
+    <section id="sankey-section">
+        <div class="section-intro">
+            <h2>The Weight of the Branches</h2>
+            <p>
+                Some lineages are more fragile than others. By tracing the flow from Phylum to Family, 
+                we see which branches of the biological tree are being pruned away forever.
+            </p>
+        </div>
+        <div id="sankey-container" class="chart-container"></div>
+
+        <div class="narrative-bridge">
+            "Finally, we must ask the most difficult question: <b>Why?</b>"
+        </div>
+    </section>
+
+    <section id="bubble-section">
+        <div class="section-intro">
+            <h2>The Architecture of Threats</h2>
+            <p>
+                Explore the forces driving the departure. From habitat fragmentation to the quiet 
+                invasion of non-native species, every circle below represents a cause, a class, 
+                and a casualty. 
+            </p>
+        </div>
+        <div id="bubble-container" class="chart-container"></div>
+        
+        <div class="story-block" style="text-align:center; margin: 80px auto;">
+            <p>
+                Extinction is a choice made by the living. 
+                <br>
+                <strong>The Spoon-billed Sandpiper is still waiting for our answer.</strong>
+            </p>
+        </div>
+    </section>
+
+    <footer>
+        <p>A Narrative Data Visualization by Group 09</p>
+        <p>Xinyi Li · Qi Gao · Dehui Chen · Logan Fleming · Junsong Cai</p>
+        <p><em>Data sourced from the IUCN Red List of Threatened Species.</em></p>
+    </footer>
+
+    <div id="tooltip"></div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <script src="js/timeline.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/sankey.js"></script>
+    <script src="js/bubble.js"></script>
+
+</body>
+</html>
