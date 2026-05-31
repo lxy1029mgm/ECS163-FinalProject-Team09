@@ -138,6 +138,10 @@
             box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
         }
 
+        #map-container {
+            background: aqua;
+        }
+
         /* ======================================================
            TRANSITION QUOTES
            ====================================================== */
@@ -305,10 +309,31 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
     <script src="js/timeline.js"></script>
-    <script src="js/map.js"></script>
     <script src="js/sankey.js"></script>
     <script src="js/bubble.js"></script>
+    <script type = "module">
+        import {draw_map} from "./js/map.js"
+        const {createApp} = Vue
+        createApp({
+            //store data that needs to use in html, used for dynamic web design
+            data(){
+                return{
+
+                }
+            },
+            //things to run when the web initially opened
+            mounted(){
+                draw_map();
+            },
+            //methods triggered from html, such as @click.
+            methods:{
+
+            }
+        }).mount('#map-section')
+    </script>
 
 </body>
 </html>
