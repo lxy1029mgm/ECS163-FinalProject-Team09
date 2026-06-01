@@ -9,21 +9,32 @@
 
 //import config, easy to manage and modified if needed, makes file organized
 import { map_config } from '../config/map_config.js';
+import { global_config } from '../config/global_config.js';
 
 
 //export function for other js to import, also for modular
-export function draw_map(){
-    d3.csv(map_config.data_path).then(async raw_data => {
-        const continent_data = await d3.csv(map_config.continent_path);
+export function draw_map(is_resize, filter_mode, view_mode){
+    d3.csv(global_config.data_path).then(async raw_data => {
+        if(is_resize){
+            draw_graph();
+            return;
+        }
+        const continent_data = await d3.csv(global_config.continent_path);
         console.log("map_raw_data", raw_data);
+        console.log("filter_mode", filter_mode);
 
+        const filtered_mode_set = new Set();
+        filter_mode.forEach(item => filtered_mode_set.add(item));
         //Non user modified settings/ variables
         const NTaxon_id_col = map_config.NTaxon_id_col;
         const NLocation_col = map_config.NLocation_col;
         const NCountry_code_col = map_config.NCountry_code_col;
+        const NClass_name_col = global_config.NClass_name_col;
 
         //data processing
-        const filtered_data = raw_data.map(item => ({
+        const filtered_data = raw_data
+        .filter(item => filtered_mode_set.has(item[NClass_name_col]))
+        .map(item => ({
             [NTaxon_id_col]: item[NTaxon_id_col],
             [NLocation_col]: item[NLocation_col],
             [NCountry_code_col]: item[NCountry_code_col]
@@ -85,7 +96,7 @@ export function draw_map(){
         console.log("processed_data", processed_data);
 
         draw_graph();
-        window.addEventListener("resize", draw_graph);
+
         function draw_graph(){
             const rect_name = map_config.class_name;
             d3.selectAll(rect_name).selectAll("*").remove();
@@ -101,6 +112,7 @@ export function draw_map(){
             const innerHeight = height - margin.top - margin.bottom;
 
             const svg = d3.selectAll(rect_name).append("svg").attr("viewBox", [0, 0, width, height])
+
 
             // config color
             const color = d3.scaleSymlog()
@@ -188,6 +200,7 @@ export function draw_map(){
             svg.call(zoom);
             return svg.node();
         }
+        
     });
 
 

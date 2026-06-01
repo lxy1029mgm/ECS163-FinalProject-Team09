@@ -138,8 +138,59 @@
             box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
         }
 
+        /* ======================================================
+           MAP CONFIG
+           ====================================================== */
         #map-container {
             background: aqua;
+            touch-action: none;
+        }
+
+        .map-filter{
+            position: absolute;
+
+            top: 145px;
+            right: 60px;
+
+            z-index: 999;
+            width: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .map-checkbox {
+            pointer-events: auto;
+        }
+
+        .switch-button{
+            position: absolute;
+
+            top: 20px;
+            left: 20px;
+
+            z-index: 999;
+            width: 40px;
+            height: 40px;
+
+            border-radius: 50%;
+            border-width: 1px;
+        }
+
+        .filter-button{
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border-width: 1px;
         }
 
         /* ======================================================
@@ -257,11 +308,30 @@
                 footprint of human expansion.
             </p>
         </div>
-        <div id="map-container" class="chart-container"></div>
+        <div class="chart-container">
+            <svg id="map-container" width="100%" height="100%"></svg>
+            <button class="switch-button">
+                <img src="./images/switch.png" width="75%" height="75%">
+            </button>
+            <button class="filter-button"  @click.stop="show_filter = !show_filter">
+                <img src="./images/filter.png" width="75%" height="75%">
+            </button>
+            <div class="map-filter" v-show="show_filter">
+                <el-checkbox-group v-model="filter_mode" @change="handle_filter_change" >
+                    <el-checkbox 
+                        v-for="item in Array.from(filter_mode_set)" 
+                        :key="item" 
+                        :label="item">
+                        {{ item }}
+                    </el-checkbox>
+                </el-checkbox-group>
+            </div>
 
         <div class="narrative-bridge">
             "To understand who we are losing, we must look at the <b>tree of life</b> itself."
         </div>
+        </div>
+        
     </section>
 
     <section id="sankey-section">
@@ -311,28 +381,67 @@
     <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/topojson-client@3"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
     <script src="js/timeline.js"></script>
     <script src="js/sankey.js"></script>
     <script src="js/bubble.js"></script>
     <script type = "module">
-        import {draw_map} from "./js/map.js"
+        import {draw_map} from "./js/map.js";
+        import { global_config } from '../config/global_config.js';
         const {createApp} = Vue
-        createApp({
+        const app = createApp({
             //store data that needs to use in html, used for dynamic web design
             data(){
                 return{
-
+                    // view_mode0: country_view, 1:region_view
+                    view_mode: 0,
+                    show_filter: false,
+                    filter_mode: [],
+                    filter_mode_set: new Set(),
+                    resize_timer: null
                 }
             },
             //things to run when the web initially opened
             mounted(){
-                draw_map();
+                this.parse_filter();
+                draw_map(false, this.filter_mode);
+                window.addEventListener("resize", this.handle_resize);
             },
             //methods triggered from html, such as @click.
             methods:{
+                parse_filter(){
+                    const NClass_name_col = global_config.NClass_name_col;
+                    d3.csv(global_config.data_path).then(raw_data => { 
+                        const filtered_data = raw_data.map(item => ({
+                            [NClass_name_col]: item[NClass_name_col]
+                        }));
+                        
+                        filtered_data.forEach(item => {
+                            const class_name = item[NClass_name_col]
+                            if(!this.filter_mode_set.has(class_name)){
+                                this.filter_mode_set.add(class_name);
+                                this.filter_mode.push(class_name);
+                            }
+                        });
+                    });
+                },
 
+                handle_filter_change(selected_values){
+                    draw_map(false, this.filter_mode);
+                    console.log("parseFilter", this.filter_mode);
+                },
+
+                handle_resize(){
+                    if (this.resize_timer) clearTimeout(this.resize_timer);
+                    this.resize_timer = setTimeout(() => {
+                    draw_map(false, this.filter_mode);
+                }, 200);
+                }
             }
-        }).mount('#map-section')
+        });
+        app.use(ElementPlus);
+        app.mount('#map-section');
     </script>
 
 </body>
