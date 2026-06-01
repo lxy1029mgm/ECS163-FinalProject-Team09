@@ -193,6 +193,15 @@
             border-width: 1px;
         }
 
+        .switch-title{
+            position: absolute;
+            top: 20px;
+            left: 80px;
+            z-index: 998;
+            font-size: larger;
+            color: rgb(0, 68, 255);
+        }
+
         /* ======================================================
            TRANSITION QUOTES
            ====================================================== */
@@ -310,12 +319,13 @@
         </div>
         <div class="chart-container">
             <svg id="map-container" width="100%" height="100%"></svg>
-            <button class="switch-button">
+            <button class="switch-button" @click.stop="handle_view_mode_change">
                 <img src="./images/switch.png" width="75%" height="75%">
             </button>
             <button class="filter-button"  @click.stop="show_filter = !show_filter">
                 <img src="./images/filter.png" width="75%" height="75%">
             </button>
+            <div class="switch-title">{{view_mode ? "country-view" : "region-view"}}</div>
             <div class="map-filter" v-show="show_filter">
                 <el-checkbox-group v-model="filter_mode" @change="handle_filter_change" >
                     <el-checkbox 
@@ -394,8 +404,8 @@
             //store data that needs to use in html, used for dynamic web design
             data(){
                 return{
-                    // view_mode0: country_view, 1:region_view
-                    view_mode: 0,
+                    // view_mode true: country_view, false:region_view
+                    view_mode: true,
                     show_filter: false,
                     filter_mode: [],
                     filter_mode_set: new Set(),
@@ -405,7 +415,7 @@
             //things to run when the web initially opened
             mounted(){
                 this.parse_filter();
-                draw_map(false, this.filter_mode);
+                draw_map(false, this.filter_mode, this.view_mode);
                 window.addEventListener("resize", this.handle_resize);
             },
             //methods triggered from html, such as @click.
@@ -428,15 +438,19 @@
                 },
 
                 handle_filter_change(selected_values){
-                    draw_map(false, this.filter_mode);
-                    console.log("parseFilter", this.filter_mode);
+                    draw_map(false, this.filter_mode, this.view_mode);
                 },
 
                 handle_resize(){
                     if (this.resize_timer) clearTimeout(this.resize_timer);
                     this.resize_timer = setTimeout(() => {
-                    draw_map(false, this.filter_mode);
-                }, 200);
+                        draw_map(false, this.filter_mode, this.view_mode);
+                    }, 200);
+                },
+
+                handle_view_mode_change(){
+                    this.view_mode = !this.view_mode;
+                    draw_map(false, this.filter_mode, this.view_mode);
                 }
             }
         });

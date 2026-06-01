@@ -61,23 +61,25 @@ export function draw_map(is_resize, filter_mode, view_mode){
         const countries_to_land = [];
         continent_data.forEach(item => {
             const region_code = item[map_config.NRegion_code_col];
-            if(!continent_list.has(region_code)){
+            if(!continent_list.has(region_code) && region_code != ""){
                 countries_to_land.push({
                     "region-code": region_code,
                     "country-set": new Set(),
-                    "region-name": item[map_config.NRegion_name_col]
+                    "region-name": item[map_config.NRegion_name_col],
+                    "num_extinct": 0
                 });
                 continent_list.add(region_code);
             }
             const target = countries_to_land.find(region => region["region-code"] === region_code);
-            target["country-set"].add(item[map_config.NCountry_code_col]);
+            target ? target["country-set"].add(item[map_config.NCountry_code_col]) : null;
         });
 
         console.log("countries in region", countries_to_land)
 
-        const processed_data = [];
+        let processed_data = [];
         const processed_class = new Set();
         let max_extinct = 0;
+        let land_max_extinct = 0;
         filtered_data.forEach(item => {
             if(!processed_class.has(item[NCountry_code_col])){
                 processed_data.push({
@@ -91,9 +93,34 @@ export function draw_map(is_resize, filter_mode, view_mode){
             if(target["num_extinct"] > max_extinct){
                 max_extinct = target["num_extinct"];
             }
+            countries_to_land.forEach(land => {
+                if(land["country-set"].has(item[NCountry_code_col])){
+                    land["num_extinct"] ++;
+                    if(land["num_extinct"] > land_max_extinct){
+                        land_max_extinct = land["num_extinct"];
+                    }
+                }
+            });
         });
 
+        if(!view_mode){
+            processed_data = [];
+            countries_to_land.forEach(land => {
+                land["country-set"].forEach(country => {
+                    processed_data.push({
+                        "country_id": country,
+                        "num_extinct": land["num_extinct"]
+                    });
+                });
+            });
+            max_extinct = land_max_extinct;
+        }
         console.log("processed_data", processed_data);
+
+        let min_extinct = 99999;
+        processed_data.forEach(item => {
+            min_extinct = item["num_extinct"] < min_extinct ? item["num_extinct"] : min_extinct;
+        });
 
         draw_graph();
 
@@ -115,9 +142,16 @@ export function draw_map(is_resize, filter_mode, view_mode){
 
 
             // config color
-            const color = d3.scaleSymlog()
-            .domain([0, max_extinct])
-            .range(["#2cba00", "#a30000"]);
+            let color = null
+            if(view_mode){
+                color = d3.scaleSymlog()
+                .domain([0, max_extinct])
+                .range(["#2cba00", "#a30000"]);
+            }
+            else{
+                color = d3.scaleSequential(d3.interpolateRgb("#2cba00", "#a30000")).domain([min_extinct, max_extinct]);
+            }
+            
 
             // config projection
             const projection = d3.geoMercator()
@@ -134,7 +168,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             .attr("stroke", "black")
             .attr("stroke-width", 1)
             .attr("fill", d => {
-                const value = processed_data.find(cell => cell.country_id === d.id);
+                const value = processed_data.find(cell => +cell.country_id === +d.id);
                 return value ? color(value["num_extinct"]) : "#FFFFFF";
             });
 
