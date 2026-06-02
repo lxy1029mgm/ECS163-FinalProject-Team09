@@ -139,6 +139,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             const innerHeight = height - margin.top - margin.bottom;
 
             const svg = d3.selectAll(rect_name).append("svg").attr("viewBox", [0, 0, width, height])
+            const map_base = svg.append("g").attr("class", "map-base");
 
 
             // config color
@@ -160,13 +161,13 @@ export function draw_map(is_resize, filter_mode, view_mode){
             const path = d3.geoPath().projection(projection);
 
             // config map
-            const world_map = svg.selectAll("path")
+            const world_map = map_base.selectAll("path")
             .data(countries_data.features)
             .join("path")
             .attr("class", "world_map")
             .attr("d", path)
             .attr("stroke", "black")
-            .attr("stroke-width", 1)
+            .attr("stroke-width", 0.1)
             .attr("fill", d => {
                 const value = processed_data.find(cell => +cell.country_id === +d.id);
                 return value ? color(value["num_extinct"]) : "#FFFFFF";
@@ -189,7 +190,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
     
 
             //config information
-            svg.append("text")
+            map_base.append("text")
             .attr("transform", `translate(45, ${margin.top + innerHeight / 2}) rotate(-90)`)
             .attr("text-anchor", "middle")
             .attr("font-size", 15)
@@ -197,7 +198,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             .text("Geological graph with extinction situation");
 
             // config Legend
-            const legend = svg.append("defs");
+            const legend = map_base.append("defs");
 
             const gradient = legend.append("linearGradient")
             .attr("id", "numExtinct")
@@ -209,29 +210,98 @@ export function draw_map(is_resize, filter_mode, view_mode){
             gradient.append("stop").attr("offset", "0%").attr("stop-color", "red");
             gradient.append("stop").attr("offset", "100%").attr("stop-color", "green");
 
-            svg.append("rect")
+            map_base.append("rect")
             .attr("fill", "url(#numExtinct)")
             .attr("width", 20)
             .attr("height", 60)
             .attr("transform", `translate(${width - margin.right + 4}, ${margin.top})`);
 
             // print description of legend
-            svg.append("text")
+            map_base.append("text")
             .attr("x", width - margin.right + 30)
             .attr("y", 45)
             .attr("font-size", 9)
             .attr("fill", "green")
             .text("Low Extinction");
 
-            svg.append("text")
+            map_base.append("text")
             .attr("x", width - margin.right + 30)
             .attr("y", 95)
             .attr("font-size", 9)
             .attr("fill", "red")
             .text("High Extinction");
 
+            world_map.on("click", clicked);
 
             svg.call(zoom);
+
+            function clicked(event, d){
+                const bounds = path.bounds(d);
+                const dx = bounds[1][0] - bounds[0][0];
+                const dy = bounds[1][1] - bounds[0][1];
+                const x = (bounds[0][0] + bounds[1][0]) / 2;
+                const y = (bounds[0][1] + bounds[1][1]) / 2;
+
+                const scale = 0.6 / Math.max(dx / width, dy / height);
+
+                const tx = width / 2 - scale * x;
+                const ty = height / 2 - scale * y;
+                console.log("geoData", d)
+
+                show_focused_country(d, scale, tx, ty);
+            }
+
+            function show_focused_country(geoData, scale, tx, ty){
+                const overlay = svg.append("g").attr("class", "map-overlay").style("display", "none").on("click", hide_focused_country);
+                overlay.selectAll("*").remove();
+                overlay.style("display", "block");
+
+                overlay.append("rect")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("fill", "rgba(0, 0, 0, 0.4)")
+
+                const countryG = overlay.append("g")
+                .attr("transform", `translate(${tx}, ${ty})scale(${scale})`);
+
+                let target = null;
+                countryG.append("path")
+                .attr("d", path(geoData))
+                .attr("fill", d => {
+                    target = processed_data.find(item => +item["country_id"] === +geoData["id"]);
+                    return target ? color(target["num_extinct"]) : "#FFFFFF";
+                })
+                .attr("stroke", "black")
+                .attr("stroke-width", 0.1)
+                .on("click", function(event) {
+                    event.stopPropagation(); 
+                });
+
+                const num_extinct = target ? target["num_extinct"] : 0;
+
+                // countryG.selectAll(".species-marker")
+                // .data(random_points)
+                // .enter()
+                // .append("circle")
+                // .attr("class", "species-marker")
+                // .attr("cx", d => projection(d)[0])
+                // .attr("cy", d => projection(d)[1])
+                // .attr("r", 5 / scale)
+                // .attr("fill", "black")
+                // .attr("stroke", "black")
+                // .attr("stroke-width", 1 / scale)
+                // .on("click", (event, d) => {
+                // event.stopPropagation();
+                // });
+            }
+
+            function hide_focused_country() {
+                d3.select(".map-overlay")
+                  .style("display", "none");
+
+                  svg.selectAll(".map-overlay").remove();
+                }
+
             return svg.node();
         }
         
