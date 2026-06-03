@@ -132,13 +132,14 @@ export function draw_map(is_resize, filter_mode, view_mode){
 
             const width = rect.width; //should dynamically adjust after html is implemented
             const height = rect.height;
+            const dynamic_scale = Math.min(width, height) * 0.40;
 
             const margin = {top: 40, bottom: 50, left: 60, right: 140};
 
             const innerWidth = width - margin.left - margin.right;
             const innerHeight = height - margin.top - margin.bottom;
 
-            const svg = d3.selectAll(rect_name).append("svg").attr("viewBox", [0, 0, width, height])
+            const svg = d3.selectAll(rect_name).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("preserveAspectRatio", "xMidYMid meet");
             const map_base = svg.append("g").attr("class", "map-base");
 
 
@@ -152,13 +153,46 @@ export function draw_map(is_resize, filter_mode, view_mode){
             else{
                 color = d3.scaleSequential(d3.interpolateRgb("#2cba00", "#a30000")).domain([min_extinct, max_extinct]);
             }
+
+            // drag action
+            const drag = d3.drag()
+            .on("start", function(e){
+                if (e.sourceEvent) {
+                    e.sourceEvent.stopPropagation();
+                    e.sourceEvent.preventDefault();
+                }
+                svg.interrupt();
+                
+            })
+            .on("drag", function(e){
+                if (e.sourceEvent) {
+                    e.sourceEvent.stopPropagation();
+                    e.sourceEvent.preventDefault();
+                }
+                console.log("Dragging:", e.x);
+                const sensitive_k = 0.25;
+                const ang_start = projection.rotate();
+                const lambda = ang_start[0] + e.dx * sensitive_k;
+                const phi = ang_start[1] - e.dy * sensitive_k;
+                projection.rotate([lambda, Math.max(-90, Math.min(90, phi))]);
+                svg.selectAll("path").attr("d", path);
+            });
             
 
             // config projection
-            const projection = d3.geoMercator()
-            .fitSize([width, height], countries_data);
+            const projection = d3.geoOrthographic()
+            .scale(dynamic_scale)
+            .translate([width / 2, height / 2])
+            .clipAngle(90);
 
             const path = d3.geoPath().projection(projection);
+
+            const background = map_base.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", projection.scale())
+            .attr("fill", "#0d1b2a")
+            .call(drag);
 
             // config map
             const world_map = map_base.selectAll("path")
@@ -184,21 +218,24 @@ export function draw_map(is_resize, filter_mode, view_mode){
             // zoom
             const zoom = d3.zoom()
             .scaleExtent([1, 8])
+            .filter(event => {
+                return event.type === 'wheel' || event.ctrlKey; 
+            })
             .on("zoom", (event) => {
-                world_map.attr("transform", event.transform);
+                map_base.attr("transform", event.transform);
             });
     
 
             //config information
-            map_base.append("text")
+            svg.append("text")
             .attr("transform", `translate(45, ${margin.top + innerHeight / 2}) rotate(-90)`)
             .attr("text-anchor", "middle")
             .attr("font-size", 15)
-            .attr("fill", "Black")
+            .attr("fill", "White")
             .text("Geological graph with extinction situation");
 
             // config Legend
-            const legend = map_base.append("defs");
+            const legend = svg.append("defs");
 
             const gradient = legend.append("linearGradient")
             .attr("id", "numExtinct")
@@ -210,49 +247,59 @@ export function draw_map(is_resize, filter_mode, view_mode){
             gradient.append("stop").attr("offset", "0%").attr("stop-color", "red");
             gradient.append("stop").attr("offset", "100%").attr("stop-color", "green");
 
-            map_base.append("rect")
+            svg.append("rect")
             .attr("fill", "url(#numExtinct)")
             .attr("width", 20)
             .attr("height", 60)
             .attr("transform", `translate(${width - margin.right + 4}, ${margin.top})`);
 
             // print description of legend
-            map_base.append("text")
+            svg.append("text")
             .attr("x", width - margin.right + 30)
             .attr("y", 45)
             .attr("font-size", 9)
             .attr("fill", "green")
             .text("Low Extinction");
 
-            map_base.append("text")
+            svg.append("text")
             .attr("x", width - margin.right + 30)
             .attr("y", 95)
             .attr("font-size", 9)
             .attr("fill", "red")
             .text("High Extinction");
 
-            world_map.on("click", clicked);
+            world_map.on("click", clicked).call(drag);
 
             svg.call(zoom);
 
             function clicked(event, d){
-                const bounds = path.bounds(d);
-                const dx = bounds[1][0] - bounds[0][0];
-                const dy = bounds[1][1] - bounds[0][1];
-                const x = (bounds[0][0] + bounds[1][0]) / 2;
-                const y = (bounds[0][1] + bounds[1][1]) / 2;
+                if (event.defaultPrevented) return;
+                svg.call(zoom.transform, d3.zoomIdentity);
+                const center = d3.geoCentroid(d);
+                const rotation = [-center[0], -center[1]];
+                const new_scale = Math.min(width, height) * 1;
+                background.transition()
+                .duration(1000)
+                .attr("r", new_scale);
 
-                const scale = 0.6 / Math.max(dx / width, dy / height);
-
-                const tx = width / 2 - scale * x;
-                const ty = height / 2 - scale * y;
-                console.log("geoData", d)
-
-                show_focused_country(d, scale, tx, ty);
+                d3.transition()
+                .duration(1000)
+                .tween("rotate", () => {
+                    const r = d3.interpolate(projection.rotate(), rotation);
+                    const s = d3.interpolate(projection.scale(), new_scale);
+                    return function(t) {
+                        projection.rotate(r(t)).scale(s(t));
+                        svg.selectAll("path").attr("d", path); 
+                    };
+                })
+                .on("end", () => {
+                    show_focused_country(d);
+                })
+                
             }
 
-            function show_focused_country(geoData, scale, tx, ty){
-                const overlay = svg.append("g").attr("class", "map-overlay").style("display", "none").on("click", hide_focused_country);
+            function show_focused_country(geoData, center){
+                const overlay = svg.append("g").attr("class", "overlay-group").style("display", "none").on("click", hide_focused_country);
                 overlay.selectAll("*").remove();
                 overlay.style("display", "block");
 
@@ -262,7 +309,6 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 .attr("fill", "rgba(0, 0, 0, 0.4)")
 
                 const countryG = overlay.append("g")
-                .attr("transform", `translate(${tx}, ${ty})scale(${scale})`);
 
                 let target = null;
                 countryG.append("path")
@@ -299,8 +345,22 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 d3.select(".map-overlay")
                   .style("display", "none");
 
-                  svg.selectAll(".map-overlay").remove();
-                }
+                  svg.selectAll(".overlay-group").remove();
+                
+
+                const original_scale = Math.min(width, height) * 0.40;
+
+                d3.transition()
+                .duration(1000)
+                .tween("reset-earth", () => {
+                    const s = d3.interpolate(projection.scale(), original_scale);
+                    return function(t) {
+                        projection.scale(s(t));
+                        svg.selectAll("path").attr("d", path); 
+                        background.attr("r", s(t));
+                    };
+                })
+            }
 
             return svg.node();
         }
