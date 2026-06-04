@@ -14,6 +14,10 @@ import { global_config } from '../config/global_config.js';
 
 //export function for other js to import, also for modular
 export function draw_map(is_resize, filter_mode, view_mode){
+    d3.select("#map-sidebar")
+                    .classed("sidebar-active", false)
+                    .classed("sidebar-hide", true);
+                    
     d3.csv(global_config.data_path).then(async raw_data => {
         if(is_resize){
             draw_graph();
@@ -34,11 +38,11 @@ export function draw_map(is_resize, filter_mode, view_mode){
         //data processing
         const filtered_data = raw_data
         .filter(item => filtered_mode_set.has(item[NClass_name_col]))
-        .map(item => ({
-            [NTaxon_id_col]: item[NTaxon_id_col],
-            [NLocation_col]: item[NLocation_col],
-            [NCountry_code_col]: item[NCountry_code_col]
-        }));
+        // .map(item => ({
+        //     [NTaxon_id_col]: item[NTaxon_id_col],
+        //     [NLocation_col]: item[NLocation_col],
+        //     [NCountry_code_col]: item[NCountry_code_col]
+        // }));
 
         //prepare countries list to link the name in map
         filtered_data.forEach(item => {
@@ -47,7 +51,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
         });
         console.log("map_filtered_data", filtered_data);
         
-
+        // import map data
         const map_url = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
         const world_data = await d3.json(map_url);
         console.log("world_data", world_data);
@@ -76,6 +80,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
 
         console.log("countries in region", countries_to_land)
 
+        // count values for the map
         let processed_data = [];
         const processed_class = new Set();
         let max_extinct = 0;
@@ -88,7 +93,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 });
                 processed_class.add(item[NCountry_code_col]);
             }
-            const target = processed_data.find(d => d["country_id"] === item[NCountry_code_col]);
+            const target = processed_data.find(d => +d["country_id"] === +item[NCountry_code_col]);
             target["num_extinct"] ++;
             if(target["num_extinct"] > max_extinct){
                 max_extinct = target["num_extinct"];
@@ -103,6 +108,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             });
         });
 
+        // if its region view, reprocess the data in region
         if(!view_mode){
             processed_data = [];
             countries_to_land.forEach(land => {
@@ -194,7 +200,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             .attr("fill", "#0d1b2a")
             .call(drag);
 
-            // config map
+            // draw map
             const world_map = map_base.selectAll("path")
             .data(countries_data.features)
             .join("path")
@@ -209,9 +215,9 @@ export function draw_map(is_resize, filter_mode, view_mode){
 
             world_map.append("title")
             .text(d => {
-                const target = processed_data.find(cell => cell.country_id === d.id);
+                const target = processed_data.find(cell => +cell.country_id === +d.id);
                 const country_id = target ? target.country_id : null
-                const country_target = continent_data.find(country => country[NCountry_code_col] === country_id)
+                const country_target = continent_data.find(country => +country[NCountry_code_col] === +country_id)
                 return `Country: ${country_target ? country_target["name"]: null}\nNum_Extinction: ${target ? target["num_extinct"] : null}`
             })
 
@@ -298,7 +304,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 
             }
 
-            function show_focused_country(geoData, center){
+            function show_focused_country(geoData){
                 const overlay = svg.append("g").attr("class", "overlay-group").style("display", "none").on("click", hide_focused_country);
                 overlay.selectAll("*").remove();
                 overlay.style("display", "block");
@@ -311,34 +317,24 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 const countryG = overlay.append("g")
 
                 let target = null;
+                let country_id = null;
                 countryG.append("path")
                 .attr("d", path(geoData))
                 .attr("fill", d => {
                     target = processed_data.find(item => +item["country_id"] === +geoData["id"]);
+                    country_id = target ? target["country_id"] : -1;
                     return target ? color(target["num_extinct"]) : "#FFFFFF";
                 })
                 .attr("stroke", "black")
                 .attr("stroke-width", 0.1)
                 .on("click", function(event) {
                     event.stopPropagation(); 
-                });
-
-                const num_extinct = target ? target["num_extinct"] : 0;
-
-                // countryG.selectAll(".species-marker")
-                // .data(random_points)
-                // .enter()
-                // .append("circle")
-                // .attr("class", "species-marker")
-                // .attr("cx", d => projection(d)[0])
-                // .attr("cy", d => projection(d)[1])
-                // .attr("r", 5 / scale)
-                // .attr("fill", "black")
-                // .attr("stroke", "black")
-                // .attr("stroke-width", 1 / scale)
-                // .on("click", (event, d) => {
-                // event.stopPropagation();
-                // });
+                })
+                    
+                if(country_id > -1){
+                    draw_force_directed(geoData);
+                }
+                
             }
 
             function hide_focused_country() {
@@ -346,6 +342,10 @@ export function draw_map(is_resize, filter_mode, view_mode){
                   .style("display", "none");
 
                   svg.selectAll(".overlay-group").remove();
+
+                  d3.select("#map-sidebar")
+                    .classed("sidebar-active", false)
+                    .classed("sidebar-hide", true);
                 
 
                 const original_scale = Math.min(width, height) * 0.40;
@@ -360,6 +360,77 @@ export function draw_map(is_resize, filter_mode, view_mode){
                         background.attr("r", s(t));
                     };
                 })
+            }
+
+            function draw_force_directed(geoData){
+                const center = d3.geoCentroid(geoData);
+                const [center_x, center_y] = projection(center);
+
+                const filtered_data_in_country = filtered_data.filter(item => +item[NCountry_code_col] === +geoData["id"]);
+                console.log("force_direct_filtered_data", geoData);
+
+                const nodes = filtered_data_in_country.map(d => ({
+                    ...d,
+                    x: center_x,
+                    y: center_y
+                }));
+
+                const overlay = d3.select(".overlay-group");
+                const overlay_graph = overlay.append("g").attr("id", "forced-directed-group");
+
+                const links = overlay_graph.selectAll(".data-link")
+                .data(nodes)
+                .enter()
+                .append("line")
+                .attr("stroke", "rgba(255,255,255,0.4)")
+                .attr("stroke-width", 1);
+
+                const bubbles = overlay_graph.selectAll(".data-points")
+                .data(nodes)
+                .enter()
+                .append("circle")
+                .attr("r", 15)
+                .attr("fill", color(filtered_data_in_country.length))
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .on("click", function(event, d) {
+                    event.stopPropagation();
+                    show_sidebar(d, geoData["properties"]["name"])
+                });
+
+                const force_directed_graph = d3.forceSimulation(nodes)
+                .force("collide", d3.forceCollide(17))
+                .force("x", d3.forceX(center_x).strength(0.06))
+                .force("y", d3.forceY(center_y).strength(0.06))
+                .force("charge", d3.forceManyBody().strength(-30));
+
+                force_directed_graph.on("tick", () => {
+                    bubbles.attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                    links.attr("x1", center_x)
+                    .attr("y1", center_y)
+                    .attr("x2", d => d.x)
+                    .attr("y2", d => d.y);
+                })
+
+                if (filtered_data_in_country.length == 0){
+                    return;
+                }
+
+            }
+
+            function show_sidebar(data, country_name){
+                console.log("sidebar_data", data);
+                document.getElementById("sb-name").innerText = data["scientific_name"] || "Unknown species";
+                document.getElementById("sb-id").innerText = data["taxonid"] || "Unknown id";
+                document.getElementById("sb-year").innerText = data["yearLastSeen" || "Unknown last seen"];
+                document.getElementById("sb-country").innerText = country_name || "Unknown country";
+                document.getElementById("sb-category").innerText = data["class_name"] || "Unknown category";
+                document.getElementById("sb-threaten").innerText = data["threats"] || "Unknown reason";
+
+                d3.select("#map-sidebar").classed("sidebar-hidden", false)
+                .classed("sidebar-active", true);
             }
 
             return svg.node();
