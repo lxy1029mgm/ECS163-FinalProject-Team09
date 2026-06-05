@@ -1,4 +1,4 @@
-
+window.draw_bubble = function(){
 {// create container
 const container = d3.select("#bubble-container");
 
@@ -441,6 +441,7 @@ d3.csv("extinction.csv").then(data => {
     }
 });
 
+}
 }
 // By Xinyi Li
 // Bubble Graph inspired by Mike Bostock's "Zoomable Circle Packing"
