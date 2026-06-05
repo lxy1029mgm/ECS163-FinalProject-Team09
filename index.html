@@ -225,6 +225,11 @@
             opacity: 1;
             pointer-events: all;
         }
+        #timeline-container {
+            height: auto;
+            min-height: 75vh;
+            overflow: visible;
+        }
         /* ======================================================
            MULTILINE GRAPH
            ====================================================== */
@@ -390,7 +395,9 @@
         .species-details {
             margin-top: 18px;
             padding-top: 18px;
+            padding-right: 6px;
             border-top: 1px solid #2b2b30;
+            min-height: 420px;
         }
 
         .species-details h3 {
@@ -403,7 +410,6 @@
             color: #b0b0b0;
             line-height: 1.45;
         }
-
         .species-list {
             display: grid;
             grid-template-columns: repeat(3, 1fr);

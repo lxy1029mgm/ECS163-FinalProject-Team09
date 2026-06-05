@@ -20,7 +20,7 @@ let allRows = [];
 let activeLines = multiline_config.startingLines.slice();
 
 const margin = { top: 35, right: 35, bottom: 55, left: 65 };
-const detailsPageSize = 12;
+const detailsPageSize = 6;
 
 document.addEventListener("DOMContentLoaded", function(){
     draw_multiline_graph();
