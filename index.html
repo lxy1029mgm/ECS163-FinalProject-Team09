@@ -225,6 +225,279 @@
             opacity: 1;
             pointer-events: all;
         }
+        #timeline-container {
+            height: auto;
+            min-height: 75vh;
+            overflow: visible;
+        }
+        /* ======================================================
+           MULTILINE GRAPH
+           ====================================================== */
+        .multi-line-section {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 36px 0;
+        }
+
+        .multi-line-intro {
+            max-width: 760px;
+            margin-bottom: 26px;
+        }
+
+        .chart-label {
+            margin: 0 0 8px;
+            color: #ff4d4d;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .multi-line-intro h1 {
+            margin: 0 0 12px;
+            font-size: 46px;
+            line-height: 1.05;
+        }
+
+        .multi-line-intro p,
+        .multi-line-top p {
+            margin: 0;
+            color: #b0b0b0;
+            line-height: 1.55;
+        }
+
+        .multi-line-card {
+            background: #121214;
+            border: 1px solid #1f1f22;
+            border-radius: 8px;
+            padding: 22px;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.45);
+        }
+
+        .multi-line-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .multi-line-top h2 {
+            margin: 0 0 6px;
+            font-size: 24px;
+        }
+
+        .multiline-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+            max-width: 480px;
+        }
+
+        .line-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 9px;
+            border: 1px solid #2b2b30;
+            border-radius: 6px;
+            background: #18181b;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .line-control input {
+            width: 15px;
+            height: 15px;
+            margin: 0;
+        }
+
+        .line-color {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+        }
+
+        .chart-holder {
+            position: relative;
+        }
+
+        #multiline-chart {
+            width: 100%;
+            height: 560px;
+            display: block;
+        }
+
+        .chart-axis path,
+        .chart-axis line {
+            stroke: #555;
+        }
+
+        .chart-axis text {
+            fill: #aaa;
+            font-size: 12px;
+        }
+
+        .chart-grid line {
+            stroke: #26262a;
+        }
+
+        .chart-grid path {
+            display: none;
+        }
+
+        .axis-title {
+            fill: #b0b0b0;
+            font-size: 13px;
+        }
+
+        .line-path {
+            fill: none;
+            stroke-width: 3;
+        }
+
+        .line-dot {
+            stroke: #121214;
+            stroke-width: 1.5;
+            cursor: pointer;
+        }
+
+        .peak-line {
+            stroke: #ff4d4d;
+            stroke-dasharray: 5 5;
+        }
+
+        .peak-text {
+            fill: #ffb3b3;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .multiline-tooltip {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            min-width: 150px;
+            padding: 10px 12px;
+            border: 1px solid #ff4d4d;
+            border-radius: 6px;
+            background: rgba(10, 10, 12, 0.96);
+            box-shadow: 0 8px 22px rgba(32, 33, 36, 0.16);
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .multiline-tooltip strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .species-details {
+            margin-top: 18px;
+            padding-top: 18px;
+            padding-right: 6px;
+            border-top: 1px solid #2b2b30;
+            min-height: 420px;
+        }
+
+        .species-details h3 {
+            margin: 0 0 6px;
+            font-size: 20px;
+        }
+
+        .species-details p {
+            margin: 0;
+            color: #b0b0b0;
+            line-height: 1.45;
+        }
+        .species-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .species-card {
+            border: 1px solid #2b2b30;
+            border-radius: 6px;
+            padding: 12px;
+            background: #18181b;
+        }
+
+        .species-card h4 {
+            margin: 0 0 6px;
+            font-size: 15px;
+        }
+
+        .species-card p {
+            margin: 4px 0 0;
+            font-size: 13px;
+        }
+
+        .scientific-name {
+            font-style: italic;
+        }
+
+        .limited-details {
+            color: #888 !important;
+            font-style: italic;
+        }
+
+        .empty-details,
+        .more-records {
+            margin-top: 12px !important;
+        }
+
+        .page-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .page-controls button {
+            padding: 8px 14px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #18181b;
+            color: #d1d1d1;
+            cursor: pointer;
+        }
+
+        .page-controls button:disabled {
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .page-controls span {
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 760px) {
+            .multi-line-top {
+                display: block;
+            }
+
+            .multiline-controls {
+                justify-content: flex-start;
+                margin-top: 16px;
+            }
+
+            .multi-line-intro h1 {
+                font-size: 34px;
+            }
+
+            #multiline-chart {
+                height: 460px;
+            }
+
+            .species-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* ======================================================
            TRANSITION QUOTES
            ====================================================== */
@@ -324,7 +597,30 @@
                 frequency of extinction assessments reached a fever pitch. 
             </p>
         </div>
-        <div id="timeline-container" class="chart-container"></div>
+        <div id="timeline-container" class="chart-container">
+            <div class="multi-line-card">
+                <div class="multi-line-top">
+                    <div>
+                        <h2>Extinct species records by year</h2>
+                        <p>Use the checkboxes to compare groups. Hover over a dot to see the value.</p>
+                    </div>
+                    <div id="multiline-controls" class="multiline-controls"></div>
+                </div>
+
+                <div class="chart-holder">
+                    <svg id="multiline-chart"></svg>
+                    <div id="multiline-tooltip" class="multiline-tooltip"></div>
+                </div>
+
+                <div id="species-details" class="species-details">
+                    <h3>Click a dot to see the species records behind it</h3>
+                    <p>
+                        The list will show species records assessed as extinct for the
+                        selected year and animal group.
+                    </p>
+                </div>
+            </div>
+        </div>
         
         <div class="narrative-bridge">
             "Loss is not just a matter of time; it is a matter of <b>place</b>."
