@@ -1,8 +1,11 @@
 const svg = d3.select("svg");
 
 // Set canvas size
-const width = window.innerWidth;
-const height = window.innerHeight;
+// const width = window.innerWidth;
+// const height = window.innerHeight;
+const rect = document.querySelector("#sankey-container").getBoundingClientRect();
+const width = rect.width; //should dynamically adjust after html is implemented
+const height = rect.height;
 
 svg
   .attr("width", width)
@@ -144,7 +147,7 @@ function formatPercent(value, total) {
 }
 
 // Load CSV
-d3.csv("merged_cleaned_with_clean_labels.csv").then(function(data) {
+d3.csv("../extinction.csv").then(function(data) {
 
   // Add readable conservation status based on redlistCategory
   data.forEach(d => {
