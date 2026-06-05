@@ -1,11 +1,9 @@
-const svg = d3.select("svg");
-
+﻿const sankeyContainer = d3.select("#sankey-container");
+const svg = sankeyContainer.append("svg");
 // Set canvas size
-// const width = window.innerWidth;
-// const height = window.innerHeight;
-const rect = document.querySelector("#sankey-container").getBoundingClientRect();
-const width = rect.width; //should dynamically adjust after html is implemented
-const height = rect.height;
+const sankeyRect = sankeyContainer.node().getBoundingClientRect();
+const width = sankeyRect.width;
+const height = sankeyRect.height;
 
 svg
   .attr("width", width)
@@ -50,6 +48,92 @@ const tooltip = d3.select("body")
   .style("pointer-events", "none")
   .style("opacity", 0);
 
+const animalCard = d3.select("body")
+  .append("div")
+  .style("position", "absolute")
+  .style("width", "280px")
+  .style("background", "rgba(255,255,255,0.96)")
+  .style("border", "1px solid rgba(0,0,0,0.18)")
+  .style("border-radius", "10px")
+  .style("box-shadow", "0 14px 35px rgba(0,0,0,0.22)")
+  .style("font-family", "Arial, sans-serif")
+  .style("overflow", "hidden")
+  .style("pointer-events", "auto")
+  .style("opacity", 0)
+  .style("transform", "translateY(12px) scale(0.96)")
+  .style("transition", "opacity 220ms ease, transform 220ms ease");
+
+function closeAnimalCard() {
+  animalCard
+    .style("opacity", 0)
+    .style("transform", "translateY(12px) scale(0.96)");
+}
+
+function getCardPosition(anchorElement) {
+  const cardWidth = 280;
+  const cardHeight = 330;
+  const padding = 12;
+  const rect = anchorElement.getBoundingClientRect();
+
+  let left = rect.right + padding;
+  let top = rect.top + (rect.height / 2) - (cardHeight / 2);
+
+  if (left + cardWidth > window.innerWidth - padding) {
+    left = rect.left - cardWidth - padding;
+  }
+
+  if (left < padding) {
+    left = padding;
+  }
+
+  if (top + cardHeight > window.innerHeight - padding) {
+    top = window.innerHeight - cardHeight - padding;
+  }
+
+  if (top < padding) {
+    top = padding;
+  }
+
+  return { left, top };
+}
+
+function showAnimalCard(d, anchorElement) {
+  if (window.CrossGraph) {
+    window.CrossGraph.select({ name: d.name, level: d.level }, anchorElement);
+    return;
+  }
+
+  const imageUrl = localAnimalImages[d.name];
+  const imageSource = localAnimalImageSources.find(item => item.node === d.name);
+  const position = getCardPosition(anchorElement);
+
+  animalCard
+    .html(`
+      <div style="padding:12px 14px 10px;">
+        <button id="animal-card-close" style="float:right;border:0;background:#eee;border-radius:50%;width:24px;height:24px;cursor:pointer;">x</button>
+        <div style="font-size:13px;color:#666;margin-bottom:4px;">${d.level}</div>
+        <div style="font-size:18px;font-weight:bold;line-height:1.2;padding-right:28px;">${d.name}</div>
+      </div>
+      <div id="animal-image-wrap" style="height:190px;background:#f1f1f1;display:flex;align-items:center;justify-content:center;color:#666;font-size:13px;">
+        ${imageUrl
+          ? `<img src="${imageUrl}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;">`
+          : `<div style="padding:16px;text-align:center;">No local image yet.</div>`}
+      </div>
+      <div style="padding:10px 14px 14px;font-size:12px;line-height:1.45;color:#444;">
+        ${imageUrl ? "Loaded from local images." : "No local image is available for this node yet."}
+        ${imageSource ? `<br><span style="color:#777;">Source: ${imageSource.source}</span>` : ""}
+      </div>
+    `)
+    .style("left", `${position.left}px`)
+    .style("top", `${position.top}px`)
+    .style("opacity", 1)
+    .style("transform", "translateY(0) scale(1)");
+
+  d3.select("#animal-card-close").on("click", function(event) {
+    event.stopPropagation();
+    closeAnimalCard();
+  });
+}
 // Title
 svg.append("text")
   .attr("x", width / 2)
@@ -57,6 +141,7 @@ svg.append("text")
   .attr("text-anchor", "middle")
   .attr("font-size", "22px")
   .attr("font-weight", "bold")
+  .attr("fill", "#111")
   .text("Species Extinction Sankey Diagram");
 
 // Subtitle
@@ -66,7 +151,7 @@ svg.append("text")
   .attr("text-anchor", "middle")
   .attr("font-size", "13px")
   .attr("fill", "#555")
-  .text("Phylum → Class → Order → Family → Extinct");
+  .text("Phylum -> Class -> Order -> Family -> Extinct");
 
 // Legend
 const legendData = [
@@ -109,7 +194,7 @@ svg.append("text")
   .attr("text-anchor", "middle")
   .attr("font-size", "11px")
   .attr("fill", "#666")
-  .text("Hover over a flow to see count and percentages. Click a flow to keep only its related path. Click blank space to reset.");
+  .text("Hover over a flow to see count and percentages. Click a node/name to show an image. Click a flow to focus its path. Click blank space to reset.");
 
 // Create Sankey layout
 const sankey = d3.sankey()
@@ -147,7 +232,7 @@ function formatPercent(value, total) {
 }
 
 // Load CSV
-d3.csv("../extinction.csv").then(function(data) {
+d3.csv("extinction.csv").then(function(data) {
 
   // Add readable conservation status based on redlistCategory
   data.forEach(d => {
@@ -164,10 +249,10 @@ d3.csv("../extinction.csv").then(function(data) {
   );
 
   // Keep top 30 families to reduce clutter
-  const topFamilies = d3.nest()
-    .key(d => d.family_name)
-    .rollup(v => v.length)
-    .entries(data)
+  const topFamilies = Array.from(
+    d3.rollup(data, v => v.length, d => d.family_name),
+    ([key, value]) => ({ key, value })
+  )
     .sort((a, b) => b.value - a.value)
     .slice(0, 30)
     .map(d => d.key);
@@ -179,11 +264,13 @@ d3.csv("../extinction.csv").then(function(data) {
 
   // Count links between two columns
   function countLinks(sourceCol, targetCol, sourceLevel, targetLevel) {
-    const grouped = d3.nest()
-      .key(d => d[sourceCol])
-      .key(d => d[targetCol])
-      .rollup(v => v.length)
-      .entries(data);
+    const grouped = Array.from(
+      d3.rollup(data, v => v.length, d => d[sourceCol], d => d[targetCol]),
+      ([sourceKey, targetMap]) => ({
+        key: sourceKey,
+        values: Array.from(targetMap, ([targetKey, value]) => ({ key: targetKey, value }))
+      })
+    );
 
     const links = [];
 
@@ -303,8 +390,8 @@ d3.csv("../extinction.csv").then(function(data) {
     .attr("stroke-opacity", 0.38)
     .attr("stroke-width", d => Math.max(1, d.width))
     .style("cursor", "pointer")
-    .on("click", function(d) {
-      d3.event.stopPropagation();
+    .on("click", function(event, d) {
+      event.stopPropagation();
       focusOnLink(d);
     })
     .on("mouseover", function(d) {
@@ -320,16 +407,16 @@ d3.csv("../extinction.csv").then(function(data) {
       tooltip
         .style("opacity", 1)
         .html(`
-          <strong>${d.source.name} → ${d.target.name}</strong><br>
+          <strong>${d.source.name} -> ${d.target.name}</strong><br>
           Count: ${d.value} species<br>
           Share of ${d.source.name}: ${sourceShare}<br>
           Share of all displayed records: ${totalShare}
         `);
     })
-    .on("mousemove", function() {
+    .on("mousemove", function(event) {
       tooltip
-        .style("left", (d3.event.pageX + 14) + "px")
-        .style("top", (d3.event.pageY + 14) + "px");
+        .style("left", (event.pageX + 14) + "px")
+        .style("top", (event.pageY + 14) + "px");
     })
     .on("mouseout", function(d) {
       if (!hasFocus()) {
@@ -361,7 +448,14 @@ d3.csv("../extinction.csv").then(function(data) {
     })
     .attr("stroke", "#333")
     .attr("stroke-width", 0.6)
-    .on("mouseover", function(d) {
+    .style("cursor", d => d.level === "Status" ? "default" : "pointer")
+    .on("click", function(event, d) {
+      event.stopPropagation();
+      if (d.level !== "Status") {
+        showAnimalCard(d, this);
+      }
+    })
+    .on("mouseover", function(event, d) {
       if (!hasFocus()) {
         d3.select(this).attr("stroke-width", 1.8);
       }
@@ -376,10 +470,10 @@ d3.csv("../extinction.csv").then(function(data) {
           Share of all displayed records: ${nodeShare}
         `);
     })
-    .on("mousemove", function() {
+    .on("mousemove", function(event) {
       tooltip
-        .style("left", (d3.event.pageX + 14) + "px")
-        .style("top", (d3.event.pageY + 14) + "px");
+        .style("left", (event.pageX + 14) + "px")
+        .style("top", (event.pageY + 14) + "px");
     })
     .on("mouseout", function() {
       if (!hasFocus()) {
@@ -387,6 +481,15 @@ d3.csv("../extinction.csv").then(function(data) {
       }
       tooltip.style("opacity", 0);
     });
+
+  // ==================== SANKEY CROSS GRAPH HOOK START ====================
+  window.addEventListener("crossGraphSelect", function(event) {
+    const selectedName = event.detail && event.detail.selectedName;
+    if (!window.CrossGraph) return;
+    window.CrossGraph.applyHighlight(nodeSelection, selectedName);
+    window.CrossGraph.applyHighlight(labelSelection, selectedName);
+  });
+  // ==================== SANKEY CROSS GRAPH HOOK END ====================
 
   // Draw labels
   const labelSelection = labelGroup
@@ -417,7 +520,12 @@ d3.csv("../extinction.csv").then(function(data) {
     })
     .attr("font-weight", d => d.level === "Status" ? "bold" : "normal")
     .attr("fill", "#222")
-    .style("pointer-events", "none")
+    .style("pointer-events", d => d.level === "Status" ? "none" : "auto")
+    .style("cursor", d => d.level === "Status" ? "default" : "pointer")
+    .on("click", function(event, d) {
+      event.stopPropagation();
+      showAnimalCard(d, this);
+    })
     .text(d => d.name);
 
   // Get ancestors of a link's source
@@ -499,6 +607,7 @@ d3.csv("../extinction.csv").then(function(data) {
   function resetFocus() {
     focusedLinks = null;
     focusedNodes = null;
+    closeAnimalCard();
 
     linkSelection
       .attr("stroke-opacity", 0.38)
@@ -518,3 +627,10 @@ d3.csv("../extinction.csv").then(function(data) {
   });
 
 });
+
+
+
+
+
+
+
