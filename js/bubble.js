@@ -86,6 +86,7 @@ d3.csv("extinction.csv").then(data => {
         // push species data into the right place in the hierarchy
         map[cause].children[cls].children.push({
             name: species,
+            taxonId: d.taxonid || d.taxonID || d.taxon_id,
             year: d.yearLastSeen,
             location: d.location_clean,
             habitat: d.habitat
@@ -132,6 +133,11 @@ d3.csv("extinction.csv").then(data => {
                                                 // click to zoom into cause level
                                                 .on("click", (event, d) => {
                                                     event.stopPropagation();
+                                                    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                                                    if (window.CrossGraph) {
+                                                        window.CrossGraph.select({ name: d.data.name, level: "Cause" }, event.currentTarget);
+                                                    }
+                                                    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                                                     if (currentLevel !== 1) return;// only allow clicking when in cause level
                                                     currentLevel = 2; // zoom into the selected cause
                                                     activeCauseNode = d;// set active cause node for class level
@@ -183,6 +189,11 @@ d3.csv("extinction.csv").then(data => {
                                                     // click to zoom into class level
                                                     .on("click", (event, d) => {
                                                         event.stopPropagation();// only allow clicking when in class level
+                                                        // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                                                        if (window.CrossGraph) {
+                                                            window.CrossGraph.select({ name: d.data.name, level: "Class" }, event.currentTarget);
+                                                        }
+                                                        // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                                                         if (currentLevel !== 2) return;
                                                         currentLevel = 3; // zoom into the selected class
                                                         activeClassNode = d;// set active class node for species level
@@ -237,6 +248,15 @@ d3.csv("extinction.csv").then(data => {
                     .attr("fill-opacity", 0.85)// brighter fill with higher opacity, pop as the smallest circles
                     .attr("stroke", "#fff")// white stroke to stand out
                     .attr("stroke-width", 0.3)
+                    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                    .style("cursor", "pointer")
+                    .on("click", (event, d) => {
+                        event.stopPropagation();
+                        if (window.CrossGraph) {
+                            window.CrossGraph.select({ name: activeClassNode.data.name, level: "Class" }, event.currentTarget);
+                        }
+                    })
+                    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                     .on("mouseover", showTooltip)// show tooltip on hover with species details
                     .on("mousemove", moveTooltip)// move tooltip with mouse
                     .on("mouseout", hideTooltip)// hide tooltip when mouse out
@@ -351,6 +371,57 @@ d3.csv("extinction.csv").then(data => {
     }
 
     updateVisualization();// initial render
+
+    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+    function normalizeCrossGraphName(value) {
+        return String(value || "").trim().toUpperCase();
+    }
+
+    function focusSpeciesFromCrossGraph(speciesName, taxonId) {
+        const targetName = normalizeCrossGraphName(speciesName);
+        const targetTaxonId = String(taxonId || "").trim();
+        if (!targetName && !targetTaxonId) return false;
+
+        const speciesNode = root.descendants().find(d =>
+            d.depth === 3 &&
+            (
+                normalizeCrossGraphName(d.data.name) === targetName ||
+                (targetTaxonId && String(d.data.taxonId || "").trim() === targetTaxonId)
+            )
+        );
+        if (!speciesNode || !speciesNode.parent || !speciesNode.parent.parent) return false;
+
+        activeCauseNode = speciesNode.parent.parent;
+        activeClassNode = speciesNode.parent;
+        currentLevel = 3;
+
+        zoomTo(activeClassNode, 0.65, () => {
+            updateVisualization();
+            window.setTimeout(() => {
+                window.CrossGraph.applyHighlight(gCircles.selectAll(".species-dot"), targetName);
+                window.CrossGraph.applyHighlight(gTexts.selectAll(".class-label"), normalizeCrossGraphName(activeClassNode.data.name));
+            }, 80);
+        });
+
+        return true;
+    }
+
+    window.addEventListener("crossGraphSelect", function(event) {
+        const item = event.detail && event.detail.item;
+        const selectedName = event.detail && event.detail.selectedName;
+        if (!window.CrossGraph) return;
+
+        if (item && item.level === "Species" && focusSpeciesFromCrossGraph(item.name, item.taxonId)) {
+            return;
+        }
+
+        window.CrossGraph.applyHighlight(gCircles.selectAll(".cause-circle"), selectedName);
+        window.CrossGraph.applyHighlight(gCircles.selectAll(".class-circle"), selectedName);
+        window.CrossGraph.applyHighlight(gCircles.selectAll(".species-dot"), selectedName);
+        window.CrossGraph.applyHighlight(gTexts.selectAll(".cause-label"), selectedName);
+        window.CrossGraph.applyHighlight(gTexts.selectAll(".class-label"), selectedName);
+    });
+    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
 
     // ---- Zoom Function ----
     function zoomTo(d, factor, callback) {

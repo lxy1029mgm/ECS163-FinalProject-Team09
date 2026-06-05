@@ -422,3 +422,87 @@ function addPeakNote(chart, visibleData, xScale, yScale, chartHeight){
         .attr("text-anchor", "end")
         .text("Highest total: " + peak.count + " records in " + peak.year);
 }
+
+// ==================== TIMELINE CROSS GRAPH HOOK START ====================
+// Logan's timeline code above is kept intact. This section only connects it
+// to the shared cross-graph selection system.
+(function(){
+    function normalizeTimelineName(value){
+        return String(value || "").trim().toUpperCase();
+    }
+
+    function getSpeciesName(row){
+        return row.scientificName || row.scientific_name || row.main_common_name || "Unknown species";
+    }
+
+    function timelineSelectClass(dotData){
+        if(!window.CrossGraph || !dotData || dotData.key === "TOTAL"){
+            return;
+        }
+
+        window.CrossGraph.select({
+            name: dotData.key,
+            level: "Class",
+            imageKey: dotData.key
+        }, document.getElementById("timeline-container"));
+    }
+
+    function timelineSelectSpecies(row, anchorElement){
+        if(!window.CrossGraph || !row){
+            return;
+        }
+
+        const className = row.class_name || row.NClass || row.category;
+        window.CrossGraph.select({
+            name: getSpeciesName(row),
+            displayName: getSpeciesName(row),
+            taxonId: row.taxonid || row.taxonID || row.taxon_id,
+            filterName: className,
+            imageKey: className,
+            level: "Species",
+            source: "timeline"
+        }, anchorElement || document.getElementById("timeline-container"));
+    }
+
+    const originalShowSpeciesDetails = showSpeciesDetails;
+    showSpeciesDetails = function(dotData){
+        originalShowSpeciesDetails(dotData);
+        timelineSelectClass(dotData);
+    };
+
+    const originalShowSpeciesPage = showSpeciesPage;
+    showSpeciesPage = function(pageArea, rows, pageNumber){
+        originalShowSpeciesPage(pageArea, rows, pageNumber);
+
+        pageArea.selectAll(".species-card")
+            .style("cursor", "pointer")
+            .on("click.timelineCrossGraph", function(event, row){
+                event.stopPropagation();
+                timelineSelectSpecies(row, this);
+            });
+    };
+
+    window.addEventListener("crossGraphSelect", function(event){
+        const item = event.detail && event.detail.item;
+        const selectedName = normalizeTimelineName(event.detail && event.detail.selectedName);
+        if(!selectedName || !Array.isArray(allLineData) || !allLineData.length){
+            return;
+        }
+
+        const classKeys = multiline_config.lines
+            .filter(function(line){ return line.key !== "TOTAL"; })
+            .map(function(line){ return line.key; });
+
+        const targetClass = item && item.level === "Species"
+            ? normalizeTimelineName(item.filterName)
+            : selectedName;
+
+        if(classKeys.indexOf(targetClass) === -1){
+            return;
+        }
+
+        activeLines = ["TOTAL", targetClass];
+        drawChart();
+    });
+})();
+// ==================== TIMELINE CROSS GRAPH HOOK END ====================
