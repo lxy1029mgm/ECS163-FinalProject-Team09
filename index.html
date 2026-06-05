@@ -344,7 +344,7 @@
                     frequency of extinction assessments reached a fever pitch. 
                 </p>
             </div>
-            <div id="timeline-container" class="chart-container"></div>
+            <div id="timeline-container" class="chart-container" @wheel.stop></div>
             
             <div class="narrative-bridge">
                 "Loss is not just a matter of time; it is a matter of <b>place</b>."
@@ -361,7 +361,7 @@
                 </p>
             </div>
             <div class="chart-container">
-                <svg id="map-container" width="100%" height="100%">
+                <svg id="map-container" width="100%" height="100%" @wheel.stop>
                     <g class="map-base"></g>
                     <g class="map-overlay" style="display: none;"></g>
                 </svg>
@@ -371,7 +371,7 @@
                 <button class="filter-button"  @click.stop="show_filter = !show_filter">
                     <img src="./images/filter.png" width="75%" height="75%">
                 </button>
-                <div id="map-sidebar" class="sidebar-hide">
+                <div id="map-sidebar" class="sidebar-hide" @wheel="handle_sidebar">
                     <button id="close-sidebar-but" @click.stop="close_side_bar()">✕</button>
                     <h2 id="sb-name">unknown</h2>
                     <div>TaxonID: <span id="sb-id">unknown</span></div>
@@ -406,7 +406,7 @@
                     we see which branches of the biological tree are being pruned away forever.
                 </p>
             </div>
-            <div id="sankey-container" class="chart-container"></div>
+            <div id="sankey-container" class="chart-container" @wheel.stop></div>
 
             <div class="narrative-bridge">
                 "Finally, we must ask the most difficult question: <b>Why?</b>"
@@ -422,7 +422,7 @@
                     and a casualty. 
                 </p>
             </div>
-            <div id="bubble-container" class="chart-container"></div>
+            <div id="bubble-container" class="chart-container" @wheel.stop></div>
             
             <div class="narrative-bridge">
                 <p>
@@ -465,6 +465,7 @@
                     filter_mode: [],
                     filter_mode_set: new Set(),
                     resize_timer: null,
+                    is_sidebar_active: false,
 
                     // page switch config
                     show_page: 0,
@@ -477,6 +478,10 @@
                 this.parse_filter();
                 window.addEventListener("resize", this.handle_resize);
                 window.addEventListener("wheel", this.handle_wheel);
+            },
+            unmounted(){
+                window.removeEventListener("resize", this.handle_resize);
+                window.removeEventListener("wheel", this.handle_wheel);
             },
             watch: {
                 show_page(new_page){
@@ -557,6 +562,18 @@
                     d3.select("#map-sidebar")
                     .classed("sidebar-active", false)
                     .classed("sidebar-hide", true);
+                    this.is_sidebar_active = false;
+                },
+
+                open_side_bar(){
+                    d3.select("#map-sidebar")
+                    .classed("sidebar-active", true)
+                    .classed("sidebar-hide", false);
+                    this.is_sidebar_active = true;
+                },
+
+                handle_sidebar(event){
+                    if(this.is_sidebar_active) event.stopPropagation();
                 }
             }
         });

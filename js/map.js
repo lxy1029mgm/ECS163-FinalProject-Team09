@@ -14,9 +14,11 @@ import { global_config } from '../config/global_config.js';
 
 //export function for other js to import, also for modular
 export function draw_map(is_resize, filter_mode, view_mode){
-    d3.select("#map-sidebar")
-                    .classed("sidebar-active", false)
-                    .classed("sidebar-hide", true);
+    // if page refresh, reset sidebar location
+    const appElement = document.getElementById('app');
+    if (appElement && appElement.__vue_app__) {
+        appElement.__vue_app__._instance.proxy.close_side_bar();
+    }
                     
     d3.csv(global_config.data_path).then(async raw_data => {
         if(is_resize){
@@ -343,9 +345,9 @@ export function draw_map(is_resize, filter_mode, view_mode){
 
                   svg.selectAll(".overlay-group").remove();
 
-                  d3.select("#map-sidebar")
-                    .classed("sidebar-active", false)
-                    .classed("sidebar-hide", true);
+                  if (appElement && appElement.__vue_app__) {
+                    appElement.__vue_app__._instance.proxy.close_side_bar();
+                }
                 
 
                 const original_scale = Math.min(width, height) * 0.40;
@@ -429,8 +431,9 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 document.getElementById("sb-category").innerText = data["class_name"] || "Unknown category";
                 document.getElementById("sb-threaten").innerText = data["threats"] || "Unknown reason";
 
-                d3.select("#map-sidebar").classed("sidebar-hidden", false)
-                .classed("sidebar-active", true);
+                if (appElement && appElement.__vue_app__) {
+                    appElement.__vue_app__._instance.proxy.open_side_bar();
+                }
             }
 
             return svg.node();
