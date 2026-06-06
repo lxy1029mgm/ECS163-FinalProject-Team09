@@ -9,5 +9,5 @@ export const map_config = {
     NRegion_code_col: "sub-region-code",
     NRegion_name_col: "sub-region",
     //name
-    class_name: "#map-container"
+    NMap_container: "#map-container"
 }
