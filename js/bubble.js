@@ -110,7 +110,7 @@ d3.csv("extinction.csv").then(data => {
 
     // create d3 hierarchy and pack layout
     const root = d3.hierarchy(rootData).sum(d => d.children ? 0 : 1);
-    const pack = d3.pack().size([width, height]).padding(15);
+    const pack = d3.pack().size([width, height]).padding(30);
     pack(root);
 
     // ---- Visualization Update Function ----
@@ -139,11 +139,10 @@ d3.csv("extinction.csv").then(data => {
                                                 // click to zoom into cause level
                                                 .on("click", (event, d) => {
                                                     event.stopPropagation();
-                                                    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                                                    // bubble cross graph hook: send selected cause name to cross graph for coordinated highlighting
                                                     if (window.CrossGraph) {
                                                         window.CrossGraph.select({ name: d.data.name, level: "Cause" }, event.currentTarget);
                                                     }
-                                                    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                                                     if (currentLevel !== 1) return;// only allow clicking when in cause level
                                                     currentLevel = 2; // zoom into the selected cause
                                                     activeCauseNode = d;// set active cause node for class level
@@ -169,7 +168,7 @@ d3.csv("extinction.csv").then(data => {
                                                                                 .style("top", (event.pageY + 15) + "px"))
                                                 .on("mouseout", () => tooltip.style("opacity", 0))
 
-        // Apply pointer-events immediately, THEN transition visually
+        // Apply pointer-events immediately, then transition visually
         const mergedCauses = causeCirclesBind.merge(causeCirclesEnter);
         mergedCauses.style("pointer-events", d => (currentLevel === 1) ? "auto" : "none")
             .transition().duration(600)
@@ -198,11 +197,10 @@ d3.csv("extinction.csv").then(data => {
                                                     // click to zoom into class level
                                                     .on("click", (event, d) => {
                                                         event.stopPropagation();
-                                                        // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                                                        // bubble cross graph hook: send selected class name to cross graph for coordinated highlighting
                                                         if (window.CrossGraph) {
                                                             window.CrossGraph.select({ name: d.data.name, level: "Class" }, event.currentTarget);
                                                         }
-                                                        // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                                                         if (currentLevel !== 2) return;
                                                         currentLevel = 3; 
                                                         activeClassNode = d;
@@ -251,16 +249,15 @@ d3.csv("extinction.csv").then(data => {
                     .attr("fill-opacity", 0.85)// brighter fill with higher opacity, pop as the smallest circles
                     .attr("stroke", "#fff")// white stroke to stand out
                     .attr("stroke-width", 0.3)
-                    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+                    // bubble cross graph hook: click on species dot to send selected species name and taxonId to cross graph for coordinated highlighting
                     .style("cursor", "pointer")
                     .on("click", (event, d) => {
                         event.stopPropagation();
                         if (window.CrossGraph) {
-                            // FIX: Send the Species name and TaxonID, not the Class name
+                            // send name and taxonid for better match
                             window.CrossGraph.select({ name: d.data.name, taxonId: d.data.taxonId, level: "Species" }, event.currentTarget);
                         }
                     })
-                    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                     .on("mouseover", showTooltip)// show tooltip on hover with species details
                     .on("mousemove", moveTooltip)// move tooltip with mouse
                     .on("mouseout", hideTooltip)// hide tooltip when mouse out
@@ -334,7 +331,7 @@ d3.csv("extinction.csv").then(data => {
                 if (currentLevel === 1) return d.y;
                 return d.y - d.r + (30 / currentK); 
             })
-            .style("font-size", d => currentLevel === 1 ? "15px" : `${Math.min(18, 60 / currentK)}px`);// larger font size for cause labels, scaled down with zoom level
+            .style("font-size", d => currentLevel === 1 ? "12px" : `${Math.min(18, 60 / currentK)}px`);// larger font size for cause labels, scaled down with zoom level
                 
         // Class Labels
         if (currentLevel >= 2) {// only handle class labels in class or species level
@@ -345,13 +342,11 @@ d3.csv("extinction.csv").then(data => {
             const classLabelMerge = classLabelBind.enter()
                 .append("text")
                 .attr("class", "class-label")
-                .style("pointer-events", "none") // CRITICAL: Lets clicks pass through to dots underneath!
+                .style("pointer-events", "none") // lets clicks pass through to dots underneath
                 .attr("text-anchor", "middle")
                 .style("fill", "#cccccc")
                 .style("font-weight", "600")
                 .merge(classLabelBind); 
-                // FIX: Removed the dead click handler here. The underlying class circle
-                // already handles the zoom interaction perfectly.
 
             // class labels visibility logic
             classLabelMerge.transition().duration(400)
@@ -475,7 +470,6 @@ d3.csv("extinction.csv").then(data => {
     });
 
     // ---- Tooltip Function ----
-    // ---- Tooltip Function ----
     function showTooltip(event, d) {
 
         d3.select(this)
@@ -484,8 +478,7 @@ d3.csv("extinction.csv").then(data => {
             .attr("r", 8 / currentK)
             .attr("fill", "#fff");
 
-        // FIX: Removed the // JavaScript comments from inside the HTML string 
-        // FIX: Explicitly set pointer-events: none on the tooltip so it can't trap the mouse
+        // tooltip content with species details, including name, last seen year, location, and habitat
         tooltip.style("opacity", 1)
                .style("pointer-events", "none") 
                .html(`
@@ -522,6 +515,6 @@ d3.csv("extinction.csv").then(data => {
 
 // Data source: IUCN Red List of Threatened Species
 
-// I used ChatGPT to help with hirearchy construction
-// Also optimize the zooming logic and some layout conflicts
+// I used ChatGPT and Gemini to help with hirearchy construction
+// Also optimize the zooming logic and lots of layout conflicts
 // Debug
