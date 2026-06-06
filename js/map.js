@@ -139,36 +139,117 @@ export function draw_map(is_resize, filter_mode, view_mode){
         draw_graph();
 
         function draw_graph(){
-            const rect_name = map_config.class_name;
-            d3.selectAll(rect_name).selectAll("*").remove();
 
-            const rect = document.querySelector(rect_name).getBoundingClientRect();
-
+            // define boundaries and variable names of the graph
+            const NMap_container = map_config.NMap_container;
+            const rect = document.querySelector(NMap_container).getBoundingClientRect();
             const width = rect.width; //should dynamically adjust after html is implemented
             const height = rect.height;
-            const dynamic_scale = Math.min(width, height) * 0.40;
-
             const margin = {top: 40, bottom: 50, left: 60, right: 140};
-
             const innerWidth = width - margin.left - margin.right;
             const innerHeight = height - margin.top - margin.bottom;
 
-            const svg = d3.selectAll(rect_name).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("preserveAspectRatio", "xMidYMid meet");
-            const map_base = svg.append("g").attr("class", "map-base");
+            d3.selectAll(NMap_container).selectAll("*").remove();
 
+            // create canvas
+            const svg = d3.selectAll(NMap_container).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("preserveAspectRatio", "xMidYMid meet");
+            const map_base = svg.append("g").attr("class", "map-base");
 
             // config color
             let color = null
-            if(view_mode){
+            if(view_mode){  // if country view, use log scale, otherwise, color would be too extreme
                 color = d3.scaleSymlog()
                 .domain([0, max_extinct])
                 .range(["#2cba00", "#a30000"]);
             }
-            else{
+            else{   // if region view, use linear scale as regions are averaged
                 color = d3.scaleSequential(d3.interpolateRgb("#2cba00", "#a30000")).domain([min_extinct, max_extinct]);
-            }
+            }   
 
-            // drag action
+            // define projection
+            const dynamic_scale = Math.min(width, height) * 0.40;
+            const projection = d3.geoOrthographic()
+            .scale(dynamic_scale)
+            .translate([width / 2, height / 2])
+            .clipAngle(90);
+
+            const path = d3.geoPath().projection(projection);
+
+            // define the background of the Earth (Such as the area of oceans)
+            const background = map_base.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", projection.scale())
+            .attr("fill", "#0d1b2a")
+
+            // draw map structure and fill the color
+            const world_map = map_base.selectAll("path")
+            .data(countries_data.features)
+            .join("path")
+            .attr("class", "world_map")
+            .attr("d", path)
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.1)
+            .attr("fill", d => {
+                const value = processed_data.find(cell => +cell.country_id === +d.id);
+                return value ? color(value["num_extinct"]) : "#FFFFFF";
+            });
+
+            //when mouseenter show information about the country/region information
+            world_map.append("title")
+            .text(d => {
+                const target = processed_data.find(cell => +cell.country_id === +d.id);
+                const country_id = target ? target.country_id : null;
+                const country_target = continent_data.find(country => +country[NCountry_code_col] === +country_id);
+                const region_target = countries_to_land.find(land => land["country-set"].has(country_id));
+                if(view_mode){
+                    return `Country: ${country_target ? country_target["name"]: null}\nNum_Extinction: ${target ? target["num_extinct"] : null}`
+                }
+                return `Region: ${region_target ? region_target["region-name"]: null}\nNum_Extinction: ${region_target ? region_target["num_extinct"] : null}`
+            })
+
+            //define the graph name
+            svg.append("text")
+            .attr("transform", `translate(45, ${margin.top + innerHeight / 2}) rotate(-90)`)
+            .attr("text-anchor", "middle")
+            .attr("font-size", 15)
+            .attr("fill", "White")
+            .text("Geological graph with extinction situation");
+
+            // define scale Legend on the up-right side of the graph
+            const legend = svg.append("defs");
+            // define color transit of the legend
+            const gradient = legend.append("linearGradient")
+            .attr("id", "numExtinct")
+            .attr("x1", 0)
+            .attr("x2", 0)
+            .attr("y1", 1)
+            .attr("y2", 0);
+            // define color type of the legend
+            gradient.append("stop").attr("offset", "0%").attr("stop-color", "red");
+            gradient.append("stop").attr("offset", "100%").attr("stop-color", "green");
+            // draw the legend
+            svg.append("rect")
+            .attr("fill", "url(#numExtinct)")
+            .attr("width", 20)
+            .attr("height", 60)
+            .attr("transform", `translate(${width - margin.right + 4}, ${margin.top})`);
+
+            // print description of legend
+            svg.append("text")
+            .attr("x", width - margin.right + 30)
+            .attr("y", 45)
+            .attr("font-size", 9)
+            .attr("fill", "green")
+            .text("Low Extinction");
+            svg.append("text")
+            .attr("x", width - margin.right + 30)
+            .attr("y", 95)
+            .attr("font-size", 9)
+            .attr("fill", "red")
+            .text("High Extinction");
+
+            // spinning the Earth when user is dragging
             const drag = d3.drag()
             .on("start", function(e){
                 if (e.sourceEvent) {
@@ -191,115 +272,32 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 projection.rotate([lambda, Math.max(-90, Math.min(90, phi))]);
                 svg.selectAll("path").attr("d", path);
             });
-            
+            world_map.on("click", clicked).call(drag);
+            background.call(drag);
 
-            // config projection
-            const projection = d3.geoOrthographic()
-            .scale(dynamic_scale)
-            .translate([width / 2, height / 2])
-            .clipAngle(90);
-
-            const path = d3.geoPath().projection(projection);
-
-            const background = map_base.append("circle")
-            .attr("cx", width / 2)
-            .attr("cy", height / 2)
-            .attr("r", projection.scale())
-            .attr("fill", "#0d1b2a")
-            .call(drag);
-
-            // draw map
-            const world_map = map_base.selectAll("path")
-            .data(countries_data.features)
-            .join("path")
-            .attr("class", "world_map")
-            .attr("d", path)
-            .attr("stroke", "black")
-            .attr("stroke-width", 0.1)
-            .attr("fill", d => {
-                const value = processed_data.find(cell => +cell.country_id === +d.id);
-                return value ? color(value["num_extinct"]) : "#FFFFFF";
-            });
-
-            world_map.append("title")
-            .text(d => {
-                const target = processed_data.find(cell => +cell.country_id === +d.id);
-                const country_id = target ? target.country_id : null;
-                const country_target = continent_data.find(country => +country[NCountry_code_col] === +country_id);
-                const region_target = countries_to_land.find(land => land["country-set"].has(country_id));
-                if(view_mode){
-                    return `Country: ${country_target ? country_target["name"]: null}\nNum_Extinction: ${target ? target["num_extinct"] : null}`
-                }
-                return `Region: ${region_target ? region_target["region-name"]: null}\nNum_Extinction: ${region_target ? region_target["num_extinct"] : null}`
-            })
-
-            // zoom
+            // define zoom
             const zoom = d3.zoom()
             .scaleExtent([1, 8])
-            .filter(event => {
+            .filter(event => {  // avoid conflict btw scroll on webpage and zoom in graph
                 return event.type === 'wheel' || event.ctrlKey; 
             })
             .on("zoom", (event) => {
                 map_base.attr("transform", event.transform);
             });
-    
-
-            //config information
-            svg.append("text")
-            .attr("transform", `translate(45, ${margin.top + innerHeight / 2}) rotate(-90)`)
-            .attr("text-anchor", "middle")
-            .attr("font-size", 15)
-            .attr("fill", "White")
-            .text("Geological graph with extinction situation");
-
-            // config Legend
-            const legend = svg.append("defs");
-
-            const gradient = legend.append("linearGradient")
-            .attr("id", "numExtinct")
-            .attr("x1", 0)
-            .attr("x2", 0)
-            .attr("y1", 1)
-            .attr("y2", 0);
-
-            gradient.append("stop").attr("offset", "0%").attr("stop-color", "red");
-            gradient.append("stop").attr("offset", "100%").attr("stop-color", "green");
-
-            svg.append("rect")
-            .attr("fill", "url(#numExtinct)")
-            .attr("width", 20)
-            .attr("height", 60)
-            .attr("transform", `translate(${width - margin.right + 4}, ${margin.top})`);
-
-            // print description of legend
-            svg.append("text")
-            .attr("x", width - margin.right + 30)
-            .attr("y", 45)
-            .attr("font-size", 9)
-            .attr("fill", "green")
-            .text("Low Extinction");
-
-            svg.append("text")
-            .attr("x", width - margin.right + 30)
-            .attr("y", 95)
-            .attr("font-size", 9)
-            .attr("fill", "red")
-            .text("High Extinction");
-
-            world_map.on("click", clicked).call(drag);
-
             svg.call(zoom);
 
+            // if certain country is clicked, this function would be called
             function clicked(event, d){
-                if (event.defaultPrevented) return;
-                svg.call(zoom.transform, d3.zoomIdentity);
+                if (event.defaultPrevented) return; // to prevent the conflict btw dragging the Earth and clicking certain country
+                svg.call(zoom.transform, d3.zoomIdentity); // before zoom on certain country, reset zoom level, prevent unexpected view shift
                 const center = d3.geoCentroid(d);
                 const rotation = [-center[0], -center[1]];
                 const new_scale = Math.min(width, height) * 1;
+
+                // transition when certain country clicked
                 background.transition()
                 .duration(1000)
                 .attr("r", new_scale);
-
                 d3.transition()
                 .duration(1000)
                 .tween("rotate", () => {
@@ -316,21 +314,23 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 
             }
 
+            // when zoom in certain country, this function would be triggered
             function show_focused_country(geoData){
                 const overlay = svg.append("g").attr("class", "overlay-group").style("display", "none").on("click", hide_focused_country);
                 overlay.selectAll("*").remove();
                 overlay.style("display", "block");
+                const country_group = overlay.append("g")
+                let target = null;
+                let country_id = null;
 
+                // Make all countries darker, also used for clicking to close focused status.
                 overlay.append("rect")
                 .attr("width", width)
                 .attr("height", height)
                 .attr("fill", "rgba(0, 0, 0, 0.4)")
-
-                const countryG = overlay.append("g")
-
-                let target = null;
-                let country_id = null;
-                countryG.append("path")
+                
+                // draw the selected country above the base of the Earth, so that the selected country will be highlighted
+                country_group.append("path")
                 .attr("d", path(geoData))
                 .attr("fill", d => {
                     target = processed_data.find(item => +item["country_id"] === +geoData["id"]);
@@ -349,6 +349,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 
             }
 
+            // when click on the area besides focused country, exit focused view
             function hide_focused_country() {
                 d3.select(".map-overlay")
                   .style("display", "none");
@@ -374,12 +375,18 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 })
             }
 
+            // when a country is in focused view, graph those extincted species as points by force-directed graph
             function draw_force_directed(geoData){
+
+                // find the center of the country and use it as the center of the force-directed graph
                 const center = d3.geoCentroid(geoData);
                 const [center_x, center_y] = projection(center);
 
+                // if no extincted species in selected country, directly return, avoid waste runtime
                 const filtered_data_in_country = filtered_data.filter(item => +item[NCountry_code_col] === +geoData["id"]);
-                console.log("force_direct_filtered_data", geoData);
+                if (filtered_data_in_country.length == 0){
+                    return;
+                }
 
                 const nodes = filtered_data_in_country.map(d => ({
                     ...d,
@@ -390,6 +397,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 const overlay = d3.select(".overlay-group");
                 const overlay_graph = overlay.append("g").attr("id", "forced-directed-group");
 
+                // define links btw the center and the nodes
                 const links = overlay_graph.selectAll(".data-link")
                 .data(nodes)
                 .enter()
@@ -397,6 +405,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 .attr("stroke", "rgba(255,255,255,0.4)")
                 .attr("stroke-width", 1);
 
+                // define bubbles that hold those extincted species
                 const bubbles = overlay_graph.selectAll(".data-points")
                 .data(nodes)
                 .enter()
@@ -410,12 +419,14 @@ export function draw_map(is_resize, filter_mode, view_mode){
                     show_sidebar(d, geoData["properties"]["name"])
                 });
 
+                // define the force relations btw nodes or center
                 const force_directed_graph = d3.forceSimulation(nodes)
                 .force("collide", d3.forceCollide(17))
                 .force("x", d3.forceX(center_x).strength(0.06))
                 .force("y", d3.forceY(center_y).strength(0.06))
                 .force("charge", d3.forceManyBody().strength(-30));
 
+                // assign locations to the links and bubbles
                 force_directed_graph.on("tick", () => {
                     bubbles.attr("cx", d => d.x)
                     .attr("cy", d => d.y);
@@ -426,12 +437,10 @@ export function draw_map(is_resize, filter_mode, view_mode){
                     .attr("y2", d => d.y);
                 })
 
-                if (filtered_data_in_country.length == 0){
-                    return;
-                }
-
             }
 
+            // when a country is focused this function would be called
+            // it is just a blank box to trigger another sidebar written by another group member.
             function show_sidebar(data, country_name){
                 console.log("sidebar_data", data);
                 document.getElementById("sb-name").innerText = data["scientific_name"] || "Unknown species";
