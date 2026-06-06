@@ -46,25 +46,53 @@ var localSpeciesImages = {
   "Cryptonanus ignitus": "images/species_exact/Cryptonanus-ignitus.jpg",
   "Cryptoprocta spelea": "images/species_exact/Cryptoprocta-spelea.png",
   "Cyanoramphus ulietanus": "images/species_exact/Cyanoramphus-ulietanus.jpg",
+  "Cyanoramphus zealandicus": "images/species_exact/Cyanoramphus-zealandicus.jpg",
+  "Diaphorapteryx hawkinsi": "images/species_exact/Diaphorapteryx-hawkinsi.jpg",
   "Drepanis funerea": "images/species_exact/Drepanis-funerea.jpg",
   "Drepanis pacifica": "images/species_exact/Drepanis-pacifica.jpeg",
   "Dusicyon avus": "images/species_exact/Dusicyon-avus.jpg",
+  "Dysmorodrepanis munroi": "images/species_exact/Dysmorodrepanis-munroi.jpg",
   "Eclectus infectus": "images/species_exact/Eclectus-infectus.png",
+  "Ectopistes migratorius": "images/species_exact/Ectopistes-migratorius.jpg",
+  "Elimia lachryma": "images/species_exact/Elimia-lachryma.jpeg",
   "Emoia nativitatis": "images/species_exact/Emoia-nativitatis.jpg",
+  "Erythromachus leguati": "images/species_exact/Erythromachus-leguati.jpg",
   "Foudia delloni": "images/species_exact/Foudia-delloni.jpg",
+  "Fregilupus varius": "images/species_exact/Fregilupus-varius.jpg",
+  "Fulica newtonii": "images/species_exact/Fulica-newtonii.jpg",
+  "Gallinula nesiotis": "images/species_exact/Gallinula-nesiotis.jpg",
+  "Gerygone insularis": "images/species_exact/Gerygone-insularis.jpg",
+  "Graecoanatolica macedonica": "images/species_exact/Graecoanatolica-macedonica.jpg",
+  "Haematopus meadewaldoi": "images/species_exact/Haematopus-meadewaldoi.jpg",
+  "Hemignathus affinis": "images/species_exact/Hemignathus-affinis.jpg",
   "Hemignathus hanapepe": "images/species_exact/Hemignathus-hanapepe.jpg",
+  "Hemignathus lucidus": "images/species_exact/Hemignathus-lucidus.jpg",
   "Heteralocha acutirostris": "images/species_exact/Heteralocha-acutirostris.jpg",
+  "Himatione fraithii": "images/species_exact/Himatione-fraithii.jpg",
+  "Hippopotamus lemerlei": "images/species_exact/Hippopotamus-lemerlei.jpg",
   "Hippopotamus madagascariensis": "images/species_exact/Hippopotamus-madagascariensis.jpg",
+  "Hypolimnus pedderensis": "images/species_exact/Hypolimnus-pedderensis.jpg",
+  "Hypselotriton wolterstorffi": "images/species_exact/Hypselotriton-wolterstorffi.jpg",
   "Labeobarbus reinii": "images/species_exact/Labeobarbus-reinii.jpg",
+  "Lophopsittacus mauritianus": "images/species_exact/Lophopsittacus-mauritianus.jpg",
+  "Loxops ochraceus": "images/species_exact/Loxops-ochraceus.jpg",
   "Melanoplus spretus": "images/species_exact/Melanoplus-spretus.jpg",
+  "Microgoura meeki": "images/species_exact/Microgoura-meeki.jpg",
   "Moho apicalis": "images/species_exact/Moho-apicalis.jpg",
   "Moho braccatus": "images/species_exact/Moho-braccatus.jpg",
+  "Moho nobilis": "images/species_exact/Moho-nobilis.jpg",
   "Mundia elpenor": "images/species_exact/Mundia-elpenor.jpg",
+  "Myiagra freycineti": "images/species_exact/Myiagra-freycineti.jpg",
+  "Nesillas aldabrana": "images/species_exact/Nesillas-aldabrana.jpeg",
+  "Nesophontes edithae": "images/species_exact/Nesophontes-edithae.jpg",
   "Nesophontes major": "images/species_exact/Nesophontes-major.png",
   "Numenius tenuirostris": "images/species_exact/Numenius-tenuirostris.jpg",
+  "Nycticorax megacephalus": "images/species_exact/Nycticorax-megacephalus.jpg",
   "Oophaga speciosa": "images/species_exact/Oophaga-speciosa.jpg",
   "Pachnodus velutinus": "images/species_exact/Pachnodus-velutinus.jpeg",
+  "Paroreomyza flammea": "images/species_exact/Paroreomyza-flammea.jpg",
   "Partula auriculata": "images/species_exact/Partula-auriculata.jpeg",
+  "Partula diminuta": "images/species_exact/Partula-diminuta.jpg",
   "Partula lugubris": "images/species_exact/Partula-lugubris.jpg",
   "Philydor novaesi": "images/species_exact/Philydor-novaesi.jpg",
   "Pinguinus impennis": "images/species_exact/Pinguinus-impennis.jpg",
@@ -73,6 +101,7 @@ var localSpeciesImages = {
   "Prosobonia ellisi": "images/species_exact/Prosobonia-ellisi.jpg",
   "Pseudobactricia ridleyi": "images/species_exact/Pseudobactricia-ridleyi.jpg",
   "Pseudophilautus nanus": "images/species_exact/Pseudophilautus-nanus.jpg",
+  "Pseudophilautus nasutus": "images/species_exact/Pseudophilautus-nasutus.jpg",
   "Pseudophilautus oxyrhynchus": "images/species_exact/Pseudophilautus-oxyrhynchus.jpg",
   "Pseudophilautus variabilis": "images/species_exact/Pseudophilautus-variabilis.jpg",
   "Psittacara labati": "images/species_exact/Psittacara-labati.jpg",
@@ -87,9 +116,11 @@ var localSpeciesImages = {
   "Turnagra tanagra": "images/species_exact/Turnagra-tanagra.jpg",
   "Upupa antaios": "images/species_exact/Upupa-antaios.jpeg",
   "Urile perspicillatus": "images/species_exact/Urile-perspicillatus.jpg",
+  "Viridonia sagittirostris": "images/species_exact/Viridonia-sagittirostris.jpeg",
   "Zapornia nigra": "images/species_exact/Zapornia-nigra.jpg",
   "Zoothera terrestris": "images/species_exact/Zoothera-terrestris.jpg",
   "Zosterops albogularis": "images/species_exact/Zosterops-albogularis.jpg",
+  "Zosterops conspicillatus": "images/species_exact/Zosterops-conspicillatus.jpg",
   "Zosterops semiflavus": "images/species_exact/Zosterops-semiflavus.jpg"
 };
 
@@ -411,9 +442,23 @@ var localSpeciesImageSources =
         "className":  "AVES"
     },
     {
+        "node":  "Cyanoramphus zealandicus",
+        "level":  "Species",
+        "source":  "iNaturalist: Cyanoramphus zealandicus",
+        "taxonId":  "22685182",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Diaphorapteryx hawkinsi",
+        "level":  "Species",
+        "source":  "iNaturalist: Diaphorapteryx hawkinsi",
+        "taxonId":  "22733394",
+        "className":  "AVES"
+    },
+    {
         "node":  "Drepanis funerea",
         "level":  "Species",
-        "source":  "iNaturalist: Drepanis funerea",
+        "source":  "Existing local file",
         "taxonId":  "22720852",
         "className":  "AVES"
     },
@@ -432,6 +477,13 @@ var localSpeciesImageSources =
         "className":  "MAMMALIA"
     },
     {
+        "node":  "Dysmorodrepanis munroi",
+        "level":  "Species",
+        "source":  "iNaturalist: Dysmorodrepanis munroi",
+        "taxonId":  "22720738",
+        "className":  "AVES"
+    },
+    {
         "node":  "Eclectus infectus",
         "level":  "Species",
         "source":  "Existing local file",
@@ -439,17 +491,87 @@ var localSpeciesImageSources =
         "className":  "AVES"
     },
     {
+        "node":  "Ectopistes migratorius",
+        "level":  "Species",
+        "source":  "iNaturalist: Ectopistes migratorius",
+        "taxonId":  "22690733",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Elimia lachryma",
+        "level":  "Species",
+        "source":  "iNaturalist: Elimia lachryma",
+        "taxonId":  "40101",
+        "className":  "GASTROPODA"
+    },
+    {
         "node":  "Emoia nativitatis",
         "level":  "Species",
-        "source":  "iNaturalist: Emoia nativitatis",
+        "source":  "Existing local file",
         "taxonId":  "178595",
         "className":  "REPTILIA"
     },
     {
+        "node":  "Erythromachus leguati",
+        "level":  "Species",
+        "source":  "iNaturalist: Erythromachus leguati",
+        "taxonId":  "22728889",
+        "className":  "AVES"
+    },
+    {
         "node":  "Foudia delloni",
         "level":  "Species",
-        "source":  "iNaturalist: Foudia delloni",
+        "source":  "Existing local file",
         "taxonId":  "103811601",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Fregilupus varius",
+        "level":  "Species",
+        "source":  "iNaturalist: Fregilupus varius",
+        "taxonId":  "22710840",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Fulica newtonii",
+        "level":  "Species",
+        "source":  "iNaturalist: Fulica newtonii",
+        "taxonId":  "22728769",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Gallinula nesiotis",
+        "level":  "Species",
+        "source":  "iNaturalist: Gallinula nesiotis",
+        "taxonId":  "22728763",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Gerygone insularis",
+        "level":  "Species",
+        "source":  "iNaturalist: Gerygone insularis",
+        "taxonId":  "22704724",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Graecoanatolica macedonica",
+        "level":  "Species",
+        "source":  "iNaturalist: Graecoanatolica macedonica",
+        "taxonId":  "41027",
+        "className":  "GASTROPODA"
+    },
+    {
+        "node":  "Haematopus meadewaldoi",
+        "level":  "Species",
+        "source":  "iNaturalist: Haematopus meadewaldoi",
+        "taxonId":  "22693621",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Hemignathus affinis",
+        "level":  "Species",
+        "source":  "iNaturalist: Hemignathus affinis",
+        "taxonId":  "103823664",
         "className":  "AVES"
     },
     {
@@ -460,32 +582,88 @@ var localSpeciesImageSources =
         "className":  "AVES"
     },
     {
+        "node":  "Hemignathus lucidus",
+        "level":  "Species",
+        "source":  "iNaturalist: Hemignathus lucidus",
+        "taxonId":  "103823595",
+        "className":  "AVES"
+    },
+    {
         "node":  "Heteralocha acutirostris",
         "level":  "Species",
-        "source":  "iNaturalist: Heteralocha acutirostris",
+        "source":  "Existing local file",
         "taxonId":  "22708091",
         "className":  "AVES"
     },
     {
+        "node":  "Himatione fraithii",
+        "level":  "Species",
+        "source":  "iNaturalist: Himatione fraithii",
+        "taxonId":  "103829706",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Hippopotamus lemerlei",
+        "level":  "Species",
+        "source":  "iNaturalist: Hippopotamus lemerlei",
+        "taxonId":  "40782",
+        "className":  "MAMMALIA"
+    },
+    {
         "node":  "Hippopotamus madagascariensis",
         "level":  "Species",
-        "source":  "iNaturalist: Hippopotamus madagascariensis",
+        "source":  "Existing local file",
         "taxonId":  "40783",
         "className":  "MAMMALIA"
     },
     {
+        "node":  "Hypolimnus pedderensis",
+        "level":  "Species",
+        "source":  "iNaturalist: Hypolimnus pedderensis",
+        "taxonId":  "41254",
+        "className":  "CLITELLATA"
+    },
+    {
+        "node":  "Hypselotriton wolterstorffi",
+        "level":  "Species",
+        "source":  "iNaturalist: Hypselotriton wolterstorffi",
+        "taxonId":  "59445",
+        "className":  "AMPHIBIA"
+    },
+    {
         "node":  "Labeobarbus reinii",
         "level":  "Species",
-        "source":  "Wikimedia Commons: File:Labeobarbus reinii.jpg",
+        "source":  "Existing local file",
         "taxonId":  "60765",
         "className":  "ACTINOPTERYGII"
     },
     {
+        "node":  "Lophopsittacus mauritianus",
+        "level":  "Species",
+        "source":  "iNaturalist: Lophopsittacus mauritianus",
+        "taxonId":  "22728847",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Loxops ochraceus",
+        "level":  "Species",
+        "source":  "iNaturalist: Loxops ochraceus",
+        "taxonId":  "103824084",
+        "className":  "AVES"
+    },
+    {
         "node":  "Melanoplus spretus",
         "level":  "Species",
-        "source":  "iNaturalist: Melanoplus spretus",
+        "source":  "Existing local file",
         "taxonId":  "51269349",
         "className":  "INSECTA"
+    },
+    {
+        "node":  "Microgoura meeki",
+        "level":  "Species",
+        "source":  "iNaturalist: Microgoura meeki",
+        "taxonId":  "22691086",
+        "className":  "AVES"
     },
     {
         "node":  "Moho apicalis",
@@ -497,8 +675,15 @@ var localSpeciesImageSources =
     {
         "node":  "Moho braccatus",
         "level":  "Species",
-        "source":  "iNaturalist: Moho braccatus",
+        "source":  "Existing local file",
         "taxonId":  "22704323",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Moho nobilis",
+        "level":  "Species",
+        "source":  "iNaturalist: Moho nobilis",
+        "taxonId":  "22704342",
         "className":  "AVES"
     },
     {
@@ -509,17 +694,45 @@ var localSpeciesImageSources =
         "className":  "AVES"
     },
     {
+        "node":  "Myiagra freycineti",
+        "level":  "Species",
+        "source":  "iNaturalist: Myiagra freycineti",
+        "taxonId":  "22707354",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Nesillas aldabrana",
+        "level":  "Species",
+        "source":  "iNaturalist: Nesillas aldabrana",
+        "taxonId":  "22714587",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Nesophontes edithae",
+        "level":  "Species",
+        "source":  "iNaturalist: Nesophontes edithae",
+        "taxonId":  "41313",
+        "className":  "MAMMALIA"
+    },
+    {
         "node":  "Nesophontes major",
         "level":  "Species",
-        "source":  "iNaturalist: Nesophontes major",
+        "source":  "Existing local file",
         "taxonId":  "136381",
         "className":  "MAMMALIA"
     },
     {
         "node":  "Numenius tenuirostris",
         "level":  "Species",
-        "source":  "iNaturalist: Numenius tenuirostris",
+        "source":  "Existing local file",
         "taxonId":  "22693185",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Nycticorax megacephalus",
+        "level":  "Species",
+        "source":  "iNaturalist: Nycticorax megacephalus",
+        "taxonId":  "22728787",
         "className":  "AVES"
     },
     {
@@ -537,6 +750,13 @@ var localSpeciesImageSources =
         "className":  "GASTROPODA"
     },
     {
+        "node":  "Paroreomyza flammea",
+        "level":  "Species",
+        "source":  "iNaturalist: Paroreomyza flammea",
+        "taxonId":  "22720823",
+        "className":  "AVES"
+    },
+    {
         "node":  "Partula auriculata",
         "level":  "Species",
         "source":  "Existing local file",
@@ -544,9 +764,16 @@ var localSpeciesImageSources =
         "className":  "GASTROPODA"
     },
     {
+        "node":  "Partula diminuta",
+        "level":  "Species",
+        "source":  "iNaturalist: Partula diminuta",
+        "taxonId":  "103163335",
+        "className":  "GASTROPODA"
+    },
+    {
         "node":  "Partula lugubris",
         "level":  "Species",
-        "source":  "iNaturalist: Partula lugubris",
+        "source":  "Existing local file",
         "taxonId":  "103159873",
         "className":  "GASTROPODA"
     },
@@ -567,7 +794,7 @@ var localSpeciesImageSources =
     {
         "node":  "Porphyrio paepae",
         "level":  "Species",
-        "source":  "iNaturalist: Porphyrio paepae",
+        "source":  "Existing local file",
         "taxonId":  "62263064",
         "className":  "AVES"
     },
@@ -581,7 +808,7 @@ var localSpeciesImageSources =
     {
         "node":  "Prosobonia ellisi",
         "level":  "Species",
-        "source":  "iNaturalist: Prosobonia ellisi",
+        "source":  "Existing local file",
         "taxonId":  "22728772",
         "className":  "AVES"
     },
@@ -600,9 +827,16 @@ var localSpeciesImageSources =
         "className":  "AMPHIBIA"
     },
     {
+        "node":  "Pseudophilautus nasutus",
+        "level":  "Species",
+        "source":  "iNaturalist: Pseudophilautus nasutus",
+        "taxonId":  "58878",
+        "className":  "AMPHIBIA"
+    },
+    {
         "node":  "Pseudophilautus oxyrhynchus",
         "level":  "Species",
-        "source":  "iNaturalist: Pseudophilautus oxyrhynchus",
+        "source":  "Existing local file",
         "taxonId":  "58883",
         "className":  "AMPHIBIA"
     },
@@ -623,14 +857,14 @@ var localSpeciesImageSources =
     {
         "node":  "Ptilinopus mercierii",
         "level":  "Species",
-        "source":  "iNaturalist: Ptilinopus mercierii",
+        "source":  "Existing local file",
         "taxonId":  "22691495",
         "className":  "AVES"
     },
     {
         "node":  "Pyrgulopsis nevadensis",
         "level":  "Species",
-        "source":  "iNaturalist: Pyrgulopsis nevadensis",
+        "source":  "Existing local file",
         "taxonId":  "40048",
         "className":  "GASTROPODA"
     },
@@ -644,7 +878,7 @@ var localSpeciesImageSources =
     {
         "node":  "Rhodacanthis palmeri",
         "level":  "Species",
-        "source":  "iNaturalist: Rhodacanthis palmeri",
+        "source":  "Existing local file",
         "taxonId":  "22720749",
         "className":  "AVES"
     },
@@ -698,6 +932,13 @@ var localSpeciesImageSources =
         "className":  "AVES"
     },
     {
+        "node":  "Viridonia sagittirostris",
+        "level":  "Species",
+        "source":  "iNaturalist: Viridonia sagittirostris",
+        "taxonId":  "22720784",
+        "className":  "AVES"
+    },
+    {
         "node":  "Zapornia nigra",
         "level":  "Species",
         "source":  "Existing local file",
@@ -714,8 +955,15 @@ var localSpeciesImageSources =
     {
         "node":  "Zosterops albogularis",
         "level":  "Species",
-        "source":  "iNaturalist: Zosterops albogularis",
+        "source":  "Existing local file",
         "taxonId":  "22714229",
+        "className":  "AVES"
+    },
+    {
+        "node":  "Zosterops conspicillatus",
+        "level":  "Species",
+        "source":  "iNaturalist: Zosterops conspicillatus",
+        "taxonId":  "103889155",
         "className":  "AVES"
     },
     {
