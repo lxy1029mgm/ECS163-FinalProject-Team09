@@ -38,11 +38,6 @@ export function draw_map(is_resize, filter_mode, view_mode){
         //data processing
         const filtered_data = raw_data
         .filter(item => filtered_mode_set.has(item[NClass_name_col]))
-        // .map(item => ({
-        //     [NTaxon_id_col]: item[NTaxon_id_col],
-        //     [NLocation_col]: item[NLocation_col],
-        //     [NCountry_code_col]: item[NCountry_code_col]
-        // }));
 
         //prepare countries list to link the name in map
         filtered_data.forEach(item => {
@@ -216,9 +211,13 @@ export function draw_map(is_resize, filter_mode, view_mode){
             world_map.append("title")
             .text(d => {
                 const target = processed_data.find(cell => +cell.country_id === +d.id);
-                const country_id = target ? target.country_id : null
-                const country_target = continent_data.find(country => +country[NCountry_code_col] === +country_id)
-                return `Country: ${country_target ? country_target["name"]: null}\nNum_Extinction: ${target ? target["num_extinct"] : null}`
+                const country_id = target ? target.country_id : null;
+                const country_target = continent_data.find(country => +country[NCountry_code_col] === +country_id);
+                const region_target = countries_to_land.find(land => land["country-set"].has(country_id));
+                if(view_mode){
+                    return `Country: ${country_target ? country_target["name"]: null}\nNum_Extinction: ${target ? target["num_extinct"] : null}`
+                }
+                return `Region: ${region_target ? region_target["region-name"]: null}\nNum_Extinction: ${region_target ? region_target["num_extinct"] : null}`
             })
 
             // zoom
