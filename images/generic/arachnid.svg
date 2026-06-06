@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 210">
+  <rect width="300" height="210" fill="#f1f1f1"/>
+  <ellipse cx="150" cy="126" rx="47" ry="37" fill="#263238"/>
+  <circle cx="150" cy="81" r="26" fill="#263238"/>
+  <path d="M106 113H49M109 134H47M195 113h58M192 134h61M113 95 62 57M187 95l51-38M113 153l-48 39M187 153l48 39" stroke="#263238" stroke-width="8" stroke-linecap="round"/>
+  <text x="150" y="194" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#666" letter-spacing="1.5">ARACHNID GROUP</text>
+</svg>

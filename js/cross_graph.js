@@ -1,4 +1,4 @@
-// ==================== CROSS GRAPH + ANIMAL IMAGE POPUP START ====================
+﻿// ==================== CROSS GRAPH + ANIMAL IMAGE POPUP START ====================
 // Shared selection, cross-chart highlighting, and local animal images.
 
 (function () {
@@ -10,7 +10,8 @@
     selected: null,
     dragging: false,
     dragOffsetX: 0,
-    dragOffsetY: 0
+    dragOffsetY: 0,
+    pointerId: null
   };
 
   const card = d3.select("body")
@@ -27,6 +28,7 @@
     .style("font-family", "Inter, Segoe UI, sans-serif")
     .style("overflow", "hidden")
     .style("pointer-events", "auto")
+    .style("touch-action", "none")
     .style("opacity", 0)
     .style("transform", "translateY(10px) scale(0.96)")
     .style("transition", "opacity 180ms ease, transform 180ms ease");
@@ -92,31 +94,48 @@
   function startDrag(event) {
     const cardNode = card.node();
     if (!cardNode || event.target.id === "animal-card-close") return;
+    if (event.button !== undefined && event.button !== 0) return;
     const rect = cardNode.getBoundingClientRect();
     state.dragging = true;
     state.dragOffsetX = event.clientX - rect.left;
     state.dragOffsetY = event.clientY - rect.top;
-    card.style("transition", "none");
+    state.pointerId = event.pointerId;
+    if (cardNode.setPointerCapture && event.pointerId !== undefined) {
+      cardNode.setPointerCapture(event.pointerId);
+    }
+    card
+      .style("transition", "none")
+      .style("transform", "none");
     event.preventDefault();
     event.stopPropagation();
   }
 
   function dragCard(event) {
     if (!state.dragging) return;
+    if (state.pointerId !== null && event.pointerId !== undefined && event.pointerId !== state.pointerId) return;
     const left = Math.max(gap, Math.min(window.innerWidth - cardWidth - gap, event.clientX - state.dragOffsetX));
     const top = Math.max(gap, Math.min(window.innerHeight - cardHeight - gap, event.clientY - state.dragOffsetY));
     card
       .style("left", `${left}px`)
       .style("top", `${top}px`);
+    event.preventDefault();
   }
 
-  function stopDrag() {
+  function stopDrag(event) {
     if (!state.dragging) return;
+    const cardNode = card.node();
+    if (cardNode && cardNode.releasePointerCapture && state.pointerId !== null) {
+      try { cardNode.releasePointerCapture(state.pointerId); } catch (error) {}
+    }
     state.dragging = false;
+    state.pointerId = null;
     card.style("transition", "opacity 180ms ease, transform 180ms ease");
+    if (event) event.preventDefault();
   }
 
   function showImageCard(item, anchorElement) {
+    if (item && item.level === "Cause") return;
+    if (item && item.level === "Class") return;
     if (!item || !item.name || !anchorElement) return;
 
     const displayName = item.displayName || item.name;
@@ -139,18 +158,14 @@
       (isSameName(imageKey, item.name) || isSameName(imageKey, item.displayName));
     const usesParentFallback = item.level === "Species" && rawImageUrl && !matchedSpeciesImage;
     let imageUrl = "";
-    if (usesParentFallback) {
-      imageUrl = genericGroupIcon(imageKey || item.filterName);
-    } else {
-      const imageUrlObject = rawImageUrl ? new URL(rawImageUrl, window.location.href) : null;
-      if (imageUrlObject) imageUrlObject.searchParams.set("v", "local3");
-      imageUrl = imageUrlObject ? imageUrlObject.href : "";
-    }
+    const imageUrlObject = rawImageUrl ? new URL(rawImageUrl, window.location.href) : null;
+    if (imageUrlObject) imageUrlObject.searchParams.set("v", "local4");
+    imageUrl = imageUrlObject ? imageUrlObject.href : "";
     const position = getPosition(anchorElement);
 
     card
       .html(`
-        <div id="animal-card-drag" style="padding:14px 16px 12px;cursor:move;user-select:none;">
+        <div id="animal-card-drag" style="padding:14px 16px 12px;cursor:move;user-select:none;touch-action:none;">
           <button id="animal-card-close" style="float:right;border:0;background:#eeeeee;color:#111111;border-radius:50%;width:25px;height:25px;cursor:pointer;">x</button>
           <div style="font-size:12px;color:#666666;letter-spacing:1px;text-transform:uppercase;">${item.level || "Animal group"}</div>
           <div style="font-size:20px;font-weight:700;line-height:1.2;padding-right:32px;">${displayName}</div>
@@ -172,11 +187,14 @@
       .style("opacity", 1)
       .style("transform", "translateY(0) scale(1)");
 
-    d3.select("#animal-card-close").on("click", function (event) {
+    const closeButton = document.getElementById("animal-card-close");
+    const cardNode = document.getElementById("animal-image-card");
+
+    closeButton.addEventListener("click", function (event) {
       event.stopPropagation();
       closeCard();
     });
-    d3.select("#animal-card-drag").on("mousedown", startDrag);
+    cardNode.addEventListener("pointerdown", startDrag);
   }
 
   function normalizeName(value) {
@@ -264,8 +282,9 @@
       closeCard();
     }
   });
-  document.addEventListener("mousemove", dragCard);
-  document.addEventListener("mouseup", stopDrag);
+  window.addEventListener("pointermove", dragCard, true);
+  window.addEventListener("pointerup", stopDrag, true);
+  window.addEventListener("pointercancel", stopDrag, true);
 
   window.addEventListener("message", function(event) {
     if (event.origin !== window.location.origin) return;
@@ -336,3 +355,5 @@
 })();
 
 // ==================== CROSS GRAPH + ANIMAL IMAGE POPUP END ====================
+
+

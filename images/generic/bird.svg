@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 210">
+  <rect width="300" height="210" fill="#f1f1f1"/>
+  <path d="M50 128c56-53 101-57 156-11 22-2 37-12 49-31-1 52-31 84-86 93-43 7-84-12-119-51z" fill="#263238"/>
+  <path d="M97 122c39-35 73-42 109-20-53 14-88 34-125 68 2-19 7-34 16-48z" fill="#f7f7f7" opacity=".55"/>
+  <circle cx="217" cy="110" r="5" fill="#f7f7f7"/>
+  <text x="150" y="194" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#666" letter-spacing="1.5">BIRD GROUP</text>
+</svg>

@@ -1,17 +1,17 @@
 var localAnimalImages = {
-  "ACTINOPTERYGII": "images/Class-ACTINOPTERYGII.jpg",
-  "AVES": "images/Class-AVES.jpg",
-  "INSECTA": "images/Class-INSECTA.jpg",
-  "MAMMALIA": "images/Class-MAMMALIA.jpg",
+  "ACTINOPTERYGII": "images/generic/fish.svg",
+  "AVES": "images/generic/bird.svg",
+  "INSECTA": "images/generic/insect.svg",
+  "MAMMALIA": "images/generic/mammal.svg",
   "ARDEIDAE": "images/Family-ARDEIDAE.jpg",
   "CICHLIDAE": "images/Family-CICHLIDAE.jpg",
   "ANURA": "images/Order-ANURA.jpg",
   "PASSERIFORMES": "images/Order-PASSERIFORMES.jpg",
   "PSITTACIFORMES": "images/Order-PSITTACIFORMES.jpg",
   "RODENTIA": "images/Order-RODENTIA.jpg",
-  "AMPHIBIA": "images/Class-AMPHIBIA.jpg",
-  "ARACHNIDA": "images/Class-ARACHNIDA.png",
-  "REPTILIA": "images/Class-REPTILIA.jpg",
+  "AMPHIBIA": "images/generic/amphibian.svg",
+  "ARACHNIDA": "images/generic/arachnid.svg",
+  "REPTILIA": "images/generic/reptile.svg",
   "ANATIDAE": "images/Family-ANATIDAE.jpg",
   "COLUMBIDAE": "images/Family-COLUMBIDAE.jpg",
   "CRICETIDAE": "images/Family-CRICETIDAE.jpg",
@@ -30,7 +30,7 @@ var localAnimalImages = {
   "STYLOMMATOPHORA": "images/Order-STYLOMMATOPHORA.jpg",
   "ARTHROPODA": "images/Phylum-ARTHROPODA.png",
   "MOLLUSCA": "images/Phylum-MOLLUSCA.png",
-  "GASTROPODA": "images/Class-GASTROPODA-inat.jpg",
+  "GASTROPODA": "images/generic/mollusk.svg",
   "ACROCEPHALIDAE": "images/Family-ACROCEPHALIDAE-inat.jpg",
   "BUFONIDAE": "images/Family-BUFONIDAE-inat.jpg",
   "BYTHINELLIDAE": "images/Family-BYTHINELLIDAE-inat.jpg",
@@ -66,22 +66,22 @@ var localAnimalImageSources = [
   {
     "node": "ACTINOPTERYGII",
     "level": "Class",
-    "source": "File:Georgia Aquarium - Giant Grouper.jpg"
+    "source": "Representative image for parent group"
   },
   {
     "node": "AVES",
     "level": "Class",
-    "source": "File:Pigeon portrait 4861.jpg"
+    "source": "Representative image for parent group"
   },
   {
     "node": "INSECTA",
     "level": "Class",
-    "source": "File:Garden locust (Acanthacris ruficornis).jpg"
+    "source": "Representative image for parent group"
   },
   {
     "node": "MAMMALIA",
     "level": "Class",
-    "source": "File:Tamias-rufus-001.jpg"
+    "source": "Representative image for parent group"
   },
   {
     "node": "ARDEIDAE",
@@ -116,17 +116,17 @@ var localAnimalImageSources = [
   {
     "node": "AMPHIBIA",
     "level": "Class",
-    "source": "Amphibian"
+    "source": "Representative image for parent group"
   },
   {
     "node": "ARACHNIDA",
     "level": "Class",
-    "source": "Arachnid"
+    "source": "Representative image for parent group"
   },
   {
     "node": "REPTILIA",
     "level": "Class",
-    "source": "Reptile"
+    "source": "Representative image for parent group"
   },
   {
     "node": "ANATIDAE",
@@ -221,7 +221,7 @@ var localAnimalImageSources = [
   {
     "node": "GASTROPODA",
     "level": "Class",
-    "source": "iNaturalist: Gastropoda"
+    "source": "Representative image for parent group"
   },
   {
     "node": "ACROCEPHALIDAE",

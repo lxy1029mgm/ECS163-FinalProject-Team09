@@ -255,7 +255,13 @@ d3.csv("extinction.csv").then(data => {
                         event.stopPropagation();
                         if (window.CrossGraph) {
                             // send name and taxonid for better match
-                            window.CrossGraph.select({ name: d.data.name, taxonId: d.data.taxonId, level: "Species" }, event.currentTarget);
+                            window.CrossGraph.select({
+                                name: d.data.name,
+                                taxonId: d.data.taxonId,
+                                level: "Species",
+                                filterName: activeClassNode.data.name,
+                                imageKey: activeClassNode.data.name
+                            }, event.currentTarget);
                         }
                     })
                     .on("mouseover", showTooltip)// show tooltip on hover with species details
