@@ -81,6 +81,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
         let max_extinct = 0;
         let land_max_extinct = 0;
         filtered_data.forEach(item => {
+            // if new country appeared, add it
             if(!processed_class.has(item[NCountry_code_col])){
                 processed_data.push({
                     "country_id": item[NCountry_code_col],
@@ -90,10 +91,10 @@ export function draw_map(is_resize, filter_mode, view_mode){
             }
             const target = processed_data.find(d => +d["country_id"] === +item[NCountry_code_col]);
             target["num_extinct"] ++;
-            if(target["num_extinct"] > max_extinct){
+            if(target["num_extinct"] > max_extinct){    // count maximum number of extinction in country
                 max_extinct = target["num_extinct"];
             }
-            countries_to_land.forEach(land => {
+            countries_to_land.forEach(land => {         // also count the number of extinction and maximum in region
                 if(land["country-set"].has(item[NCountry_code_col])){
                     land["num_extinct"] ++;
                     if(land["num_extinct"] > land_max_extinct){
@@ -115,6 +116,18 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 });
             });
             max_extinct = land_max_extinct;
+        }
+        else{   // if its country view, implement value of rest of country to zero
+            countries_to_land.forEach(land => {
+                land["country-set"].forEach(country => {
+                    if(!processed_class.has(+country)){
+                        processed_data.push({
+                            "country_id": country,
+                            "num_extinct": 0
+                        });
+                    }
+                })
+            })
         }
         console.log("processed_data", processed_data);
 
