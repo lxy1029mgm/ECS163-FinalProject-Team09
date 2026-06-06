@@ -34,12 +34,18 @@ const classEmojiMap = {
 // Level 2: Class, shortened name (3 letters) for all
 // Level 3: Species, full name for active class title
 function getClassLabel(name, level, isActive) {
+
     const emoji = classEmojiMap[name] || "🐾";
-    if (level === 3 && isActive) {
-        return `${emoji} ${name}`; // full name for active class in level 3
+
+    if (level === 2) {
+        return emoji;
     }
-    const shortName = name.length > 5 ? name.slice(0, 3).toUpperCase() : name;
-    return `${emoji} ${shortName}`; // shorten name for other cases
+
+    if (level === 3 && isActive) {
+        return `${emoji} ${name}`;
+    }
+
+    return "";
 }
 
 // global state
@@ -104,7 +110,7 @@ d3.csv("extinction.csv").then(data => {
 
     // create d3 hierarchy and pack layout
     const root = d3.hierarchy(rootData).sum(d => d.children ? 0 : 1);
-    const pack = d3.pack().size([width, height]).padding(40);
+    const pack = d3.pack().size([width, height]).padding(15);
     pack(root);
 
     // ---- Visualization Update Function ----
@@ -163,9 +169,12 @@ d3.csv("extinction.csv").then(data => {
                                                                                 .style("top", (event.pageY + 15) + "px"))
                                                 .on("mouseout", () => tooltip.style("opacity", 0))
 
-        causeCirclesBind.merge(causeCirclesEnter).transition().duration(600)
-            .style("opacity", d => (currentLevel === 1 || d === activeCauseNode) ? 1 : 0)
-            .style("pointer-events", d => (currentLevel === 1) ? "auto" : "none");
+        // Apply pointer-events immediately, THEN transition visually
+        const mergedCauses = causeCirclesBind.merge(causeCirclesEnter);
+        mergedCauses.style("pointer-events", d => (currentLevel === 1) ? "auto" : "none")
+            .transition().duration(600)
+            .style("opacity", d => (currentLevel === 1 || d === activeCauseNode) ? 1 : 0);
+
 
         // Class Level Circles
         if (currentLevel >= 2) {// only render class circles when in class or species level
@@ -177,34 +186,31 @@ d3.csv("extinction.csv").then(data => {
                                             .data(classNodes, d => d.data.name);// use class name as key
 
             const classCirclesEnter = classCirclesBind.enter()
-                                                    .append("circle")// append new circles for new class nodes
-                                                    .attr("class", "class-circle")// set initial attributes
+                                                    .append("circle")
+                                                    .attr("class", "class-circle")
                                                     .attr("cx", d => d.x).attr("cy", d => d.y)
-                                                    .attr("r", d => d.r)// initial radius, will transition to final size
+                                                    .attr("r", d => Math.max(d.r, 10))
                                                     .attr("fill", "#17171a")
                                                     .attr("stroke", "#44444a")
-                                                    .attr("stroke-width", 1.5)// darker fill and stroke to differentiate from cause circles
-                                                    .style("cursor", "pointer")// pointer cursor for interactivity
+                                                    .attr("stroke-width", 1.5) // Kept the actual visible stroke
+                                                    .style("cursor", "pointer")
                                                     
                                                     // click to zoom into class level
                                                     .on("click", (event, d) => {
-                                                        event.stopPropagation();// only allow clicking when in class level
+                                                        event.stopPropagation();
                                                         // ==================== BUBBLE CROSS GRAPH HOOK START ====================
                                                         if (window.CrossGraph) {
                                                             window.CrossGraph.select({ name: d.data.name, level: "Class" }, event.currentTarget);
                                                         }
                                                         // ==================== BUBBLE CROSS GRAPH HOOK END ====================
                                                         if (currentLevel !== 2) return;
-                                                        currentLevel = 3; // zoom into the selected class
-                                                        activeClassNode = d;// set active class node for species level
-                                                        zoomTo(d, 0.65, () => updateVisualization());// zoom in with a callback to update visualization after transition
+                                                        currentLevel = 3; 
+                                                        activeClassNode = d;
+                                                        zoomTo(d, 0.65, () => updateVisualization());
                                                     })
 
                                                     // hover tooltip for class circles
                                                     .on("mouseover", (event, d) => {
-
-                                                        // tooltip content with class name and extinct species count in that class
-                                                        // also show emoji of the class for visual interest
                                                         tooltip.style("opacity", 1).html(`
                                                             <div style="text-align:center;">
                                                                 <div style="font-size:30px; margin-bottom:5px;">${classEmojiMap[d.data.name] || "🐾"}</div>
@@ -213,19 +219,16 @@ d3.csv("extinction.csv").then(data => {
                                                             </div>
                                                         `);
                                                     })
-
-                                                    // move tooltip with mouse
-                                                    // hide tooltip on mouse out
-                                                    .on("mousemove", (event) => tooltip.style("left", (event.pageX + 15) + "px")
-                                                                                    .style("top", (event.pageY + 15) + "px"))
+                                                    .on("mousemove", (event) => tooltip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY + 15) + "px"))
                                                     .on("mouseout", () => tooltip.style("opacity", 0));
 
-            classCirclesBind.merge(classCirclesEnter)// control class circles visibility based on current level and active nodes
+            // Apply pointer-events instantly to prevent sibling nodes from blocking edge dots
+            const mergedClasses = classCirclesBind.merge(classCirclesEnter);
+            mergedClasses.style("pointer-events", d => (currentLevel === 2 || (currentLevel === 3 && d === activeClassNode)) ? "auto" : "none")
                             .transition()
-                            .duration(600)//animation duration for smooth transition
-                            .style("opacity", d => (currentLevel === 2 || d === activeClassNode) ? 1 : 0)// show all class circles in level 2, only active class circle in level 3
-                            .style("pointer-events", d => (currentLevel === 2) ? "auto" : "none");// only allow interaction with class circles in level 2
-
+                            .duration(600)
+                            .style("opacity", d => (currentLevel === 2 || d === activeClassNode) ? 1 : 0);
+                            
             classCirclesBind.exit().remove();// remove useless circles when switching levels
         } else {
             gCircles.selectAll(".class-circle").remove();// remove all class circles when going back to cause level
@@ -253,7 +256,8 @@ d3.csv("extinction.csv").then(data => {
                     .on("click", (event, d) => {
                         event.stopPropagation();
                         if (window.CrossGraph) {
-                            window.CrossGraph.select({ name: activeClassNode.data.name, level: "Class" }, event.currentTarget);
+                            // FIX: Send the Species name and TaxonID, not the Class name
+                            window.CrossGraph.select({ name: d.data.name, taxonId: d.data.taxonId, level: "Species" }, event.currentTarget);
                         }
                     })
                     // ==================== BUBBLE CROSS GRAPH HOOK END ====================
@@ -338,18 +342,20 @@ d3.csv("extinction.csv").then(data => {
             const classLabelBind = gTexts.selectAll(".class-label")
                                         .data(classNodes, d => d.data.name);// bind class nodes to class labels, use class name as key
             
-            const classLabelMerge = classLabelBind.enter()// append text elements for class labels
+            const classLabelMerge = classLabelBind.enter()
                 .append("text")
                 .attr("class", "class-label")
-                .attr("text-anchor", "middle")// center the text, and other settings for better visibility
+                .style("pointer-events", "none") // CRITICAL: Lets clicks pass through to dots underneath!
+                .attr("text-anchor", "middle")
                 .style("fill", "#cccccc")
                 .style("font-weight", "600")
-                .merge(classLabelBind);// merge with existing labels for update
+                .merge(classLabelBind); 
+                // FIX: Removed the dead click handler here. The underlying class circle
+                // already handles the zoom interaction perfectly.
 
             // class labels visibility logic
             classLabelMerge.transition().duration(400)
                 .style("opacity", d => {
-                    if (currentLevel === 2) return 1; // show all class labels in level 2
                     if (currentLevel === 3 && d === activeClassNode) return 1; // show selected class label in level 3
                     return 0;
                 });
@@ -469,33 +475,30 @@ d3.csv("extinction.csv").then(data => {
     });
 
     // ---- Tooltip Function ----
+    // ---- Tooltip Function ----
     function showTooltip(event, d) {
 
-        // highlight the hovered species dot 
-        // with a quick transition to a larger size 
         d3.select(this)
             .transition()
             .duration(100)
             .attr("r", 8 / currentK)
-            .attr("fill", "#fff");// white fill for better visibility
+            .attr("fill", "#fff");
 
-        // tooltip content with species details
-        // show class emoji for visual interest
-        tooltip.style("opacity", 1).html(`
+        // FIX: Removed the // JavaScript comments from inside the HTML string 
+        // FIX: Explicitly set pointer-events: none on the tooltip so it can't trap the mouse
+        tooltip.style("opacity", 1)
+               .style("pointer-events", "none") 
+               .html(`
                 <div style="font-family: sans-serif; line-height: 1.4;">
                     <div style="float:right; font-size:20px; margin-left:10px;">${classEmojiMap[activeClassNode.data.name] || "🐾"}</div>
-
-                    // species name in bold with the same color as the active cause for visual connection
                     <strong style="color:${getActiveColor()}; font-size:14px;">${d.data.name}</strong><br/> 
                     <hr style="border:0; border-top:1px solid #444; margin:4px 0;">
-
-                    // handle missing data, show key details about the species
                     <b>Last Seen:</b> ${d.data.year || "Unknown"}<br/>
                     <b>Location:</b> ${d.data.location || "Unknown"}<br/>
                     <b>Habitat:</b> ${d.data.habitat || "Unknown"}
                 </div>
             `);
-        moveTooltip(event);// position the tooltip near the mouse cursor
+        moveTooltip(event);
     }
 
     function moveTooltip(event) { // update tooltip position to follow the mouse
