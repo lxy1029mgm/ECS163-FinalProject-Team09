@@ -1,9 +1,6 @@
 ## Description 
 - Clearly describe the repository components and structures in a few paragraphs
 - ## Repository Structure
-
-## Repository Structure
-
 ```text
 ECS163-FinalProject-Team09/
 ├── index.html                  #  # Main webpage entry point; right-click this file and select "Open with Live Server" to run the project locally
