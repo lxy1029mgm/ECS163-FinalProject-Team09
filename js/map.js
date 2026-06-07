@@ -192,7 +192,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             .attr("stroke-width", 0.1)
             .attr("fill", d => {
                 const value = processed_data.find(cell => +cell.country_id === +d.id);
-                return value ? color(value["num_extinct"]) : "#FFFFFF";
+                return value && value["num_extinct"] > 0 ? color(value["num_extinct"]) : "#FFFFFF";
             });
 
             //when mouseenter show information about the country/region information
@@ -287,7 +287,24 @@ export function draw_map(is_resize, filter_mode, view_mode){
             svg.call(zoom);
 
             // if certain country is clicked, this function would be called
-            function clicked(event, d){
+            function normalize_map_name(value){
+                return String(value || "").trim().toUpperCase();
+            }
+
+            function same_map_species(row, species){
+                const speciesTaxon = String((species && species.taxonId) || "").trim();
+                const rowTaxon = String(row[NTaxon_id_col] || "").trim();
+                const speciesName = normalize_map_name(species && (species.name || species.displayName));
+
+                return (speciesTaxon && rowTaxon === speciesTaxon) ||
+                    (speciesName && (
+                        normalize_map_name(row.scientificName) === speciesName ||
+                        normalize_map_name(row.scientific_name) === speciesName ||
+                        normalize_map_name(row.main_common_name) === speciesName
+                    ));
+            }
+
+            function clicked(event, d, selectedSpecies){
                 if (event.defaultPrevented) return; // to prevent the conflict btw dragging the Earth and clicking certain country
                 svg.call(zoom.transform, d3.zoomIdentity); // before zoom on certain country, reset zoom level, prevent unexpected view shift
                 const center = d3.geoCentroid(d);
@@ -309,13 +326,13 @@ export function draw_map(is_resize, filter_mode, view_mode){
                     };
                 })
                 .on("end", () => {
-                    show_focused_country(d);
+                    show_focused_country(d, selectedSpecies);
                 })
                 
             }
 
             // when zoom in certain country, this function would be triggered
-            function show_focused_country(geoData){
+            function show_focused_country(geoData, selectedSpecies){
                 const overlay = svg.append("g").attr("class", "overlay-group").style("display", "none").on("click", hide_focused_country);
                 overlay.selectAll("*").remove();
                 overlay.style("display", "block");
@@ -335,7 +352,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 .attr("fill", d => {
                     target = processed_data.find(item => +item["country_id"] === +geoData["id"]);
                     country_id = target ? target["country_id"] : -1;
-                    return target ? color(target["num_extinct"]) : "#FFFFFF";
+                    return target && target["num_extinct"] > 0 ? color(target["num_extinct"]) : "#FFFFFF";
                 })
                 .attr("stroke", "black")
                 .attr("stroke-width", 0.1)
@@ -344,7 +361,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 })
                     
                 if(country_id > -1){
-                    draw_force_directed(geoData);
+                    draw_force_directed(geoData, selectedSpecies);
                 }
                 
             }
@@ -376,7 +393,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             }
 
             // when a country is in focused view, graph those extincted species as points by force-directed graph
-            function draw_force_directed(geoData){
+            function draw_force_directed(geoData, selectedSpecies){
 
                 // find the center of the country and use it as the center of the force-directed graph
                 const center = d3.geoCentroid(geoData);
@@ -412,8 +429,12 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 .append("circle")
                 .attr("r", 15)
                 .attr("fill", color(filtered_data_in_country.length))
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
+                .attr("stroke", function(d){
+                    return selectedSpecies && same_map_species(d, selectedSpecies) ? "#ff4d4d" : "black";
+                })
+                .attr("stroke-width", function(d){
+                    return selectedSpecies && same_map_species(d, selectedSpecies) ? 3 : 1;
+                })
                 .on("click", function(event, d) {
                     event.stopPropagation();
                     show_sidebar(d, geoData["properties"]["name"])
@@ -437,7 +458,17 @@ export function draw_map(is_resize, filter_mode, view_mode){
                     .attr("y2", d => d.y);
                 })
 
+                if(selectedSpecies){
+                    const selectedNode = nodes.find(function(node){
+                        return same_map_species(node, selectedSpecies);
+                    });
+                    if(selectedNode){
+                        show_sidebar(selectedNode, geoData["properties"]["name"]);
+                    }
+                }
+
             }
+
 
             // when a country is focused this function would be called
             // it is just a blank box to trigger another sidebar written by another group member.
@@ -453,6 +484,31 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 d3.select("#map-sidebar").classed("sidebar-hidden", false)
                 .classed("sidebar-active", true);
             }
+            function focus_pending_species(){
+                const pendingSpecies = window.MapCrossGraphPendingSpecies;
+                if(!pendingSpecies){
+                    return;
+                }
+
+                const targetRow = filtered_data.find(function(row){
+                    return same_map_species(row, pendingSpecies);
+                });
+
+                if(!targetRow){
+                    return;
+                }
+
+                window.MapCrossGraphPendingSpecies = null;
+                const targetCountry = countries_data.features.find(function(country){
+                    return +country.id === +targetRow[NCountry_code_col];
+                });
+
+                if(targetCountry){
+                    clicked({ defaultPrevented: false }, targetCountry, targetRow);
+                }
+            }
+
+            focus_pending_species();
 
             return svg.node();
         }

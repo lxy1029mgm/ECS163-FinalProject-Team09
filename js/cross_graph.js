@@ -256,8 +256,12 @@
     // ==================== SANKEY IFRAME CROSS GRAPH HOOK END ====================
 
     // ==================== MAP CROSS GRAPH CONTROL START ====================
-    if (item && item.source !== "map" && window.MapCrossGraph && typeof window.MapCrossGraph.focusClass === "function") {
-      window.MapCrossGraph.focusClass(selectedName);
+    if (item && item.source !== "map" && window.MapCrossGraph) {
+      if (item.level === "Species" && typeof window.MapCrossGraph.focusSpecies === "function") {
+        window.MapCrossGraph.focusSpecies(item);
+      } else if (typeof window.MapCrossGraph.focusClass === "function") {
+        window.MapCrossGraph.focusClass(selectedName);
+      }
     }
     // ==================== MAP CROSS GRAPH CONTROL END ====================
   }
