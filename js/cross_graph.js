@@ -202,26 +202,33 @@
   }
 
   function applyHighlight(selection, selectedName) {
+    const currentLinks = d3.selectAll(".sankey-link");
+    const currentNodes = d3.selectAll(".sankey-node");
+
     if (!selectedName) {
-      selection
+      currentLinks
+        .style("opacity", null)
+        .style("filter", null)
+        .attr("stroke-width", null);
+        
+      currentNodes
         .style("opacity", null)
         .style("filter", null)
         .attr("stroke-width", null);
       return;
     }
 
-    selection.each(function (d) {
-      const currentName = normalizeName(
-        d && d.name ? d.name :
-        d && d.data && d.data.name ? d.data.name :
-        d && d.class_name ? d.class_name :
-        ""
-      );
-      const isMatch = currentName === selectedName;
+    const target = String(selectedName).trim().toUpperCase();
 
-      d3.select(this)
-        .style("opacity", isMatch ? 1 : 0.22)
-        .style("filter", isMatch ? "drop-shadow(0 0 9px rgba(255,77,77,0.9))" : null);
+    currentLinks.style("opacity", function(d) {
+      const sourceName = String(d.source.name || d.source).trim().toUpperCase();
+      const targetName = String(d.target.name || d.target).trim().toUpperCase();
+      return (sourceName === target || targetName === target) ? 1.0 : 0.15;
+    });
+
+    currentNodes.style("opacity", function(d) {
+      const nodeName = String(d.name).trim().toUpperCase();
+      return nodeName === target ? 1.0 : 0.3;
     });
   }
 

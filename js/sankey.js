@@ -1,636 +1,648 @@
-﻿const sankeyContainer = d3.select("#sankey-container");
-const svg = sankeyContainer.append("svg");
-// Set canvas size
-const sankeyRect = sankeyContainer.node().getBoundingClientRect();
-const width = sankeyRect.width;
-const height = sankeyRect.height;
+﻿window.addEventListener("resize", draw_sankey);
+draw_sankey();
 
-svg
-  .attr("width", width)
-  .attr("height", height)
-  .attr("viewBox", `0 0 ${width} ${height}`);
+function draw_sankey(){
+  d3.select("#sankey-container").selectAll("*").remove();
+  const sankeyContainer = d3.select("#sankey-container");
+  const svg = sankeyContainer.append("svg");
+  // Set canvas size
+  const sankeyRect = sankeyContainer.node().getBoundingClientRect();
+  const width = sankeyRect.width;
+  const height = sankeyRect.height;
 
-svg.selectAll("*").remove();
+  svg
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
-// Margins
-const margin = {
-  top: 90,
-  right: 300,
-  bottom: 40,
-  left: 300
-};
+    const vw = window.innerWidth / 100;
+    const vh = window.innerHeight / 100;
 
-// Colors for each Sankey level
-const levelColor = {
-  Phylum: "#5B8FF9",
-  Class: "#61DDAA",
-  Order: "#65789B",
-  Family: "#F6BD16",
-  Status: "#E8684A"
-};
+  // Margins
+  const margin = {
+    top: 90,
+    right: 15 * vw,
+    bottom: 40,
+    left: 7 * vw
+  };
 
-// Colors for conservation status
-const statusColor = {
-  Extinct: "#E8684A"
-};
+  // Colors for each Sankey level
+  const levelColor = {
+    Phylum: "#5B8FF9",
+    Class: "#61DDAA",
+    Order: "#65789B",
+    Family: "#F6BD16",
+    Status: "#E8684A"
+  };
 
-// Tooltip for hover interaction
-const tooltip = d3.select("body")
-  .append("div")
-  .style("position", "absolute")
-  .style("background", "white")
-  .style("border", "1px solid #999")
-  .style("border-radius", "6px")
-  .style("padding", "8px 10px")
-  .style("font-size", "12px")
-  .style("line-height", "1.4")
-  .style("box-shadow", "0 2px 8px rgba(0,0,0,0.18)")
-  .style("pointer-events", "none")
-  .style("opacity", 0);
+  // Colors for conservation status
+  const statusColor = {
+    Extinct: "#E8684A"
+  };
 
-const animalCard = d3.select("body")
-  .append("div")
-  .style("position", "absolute")
-  .style("width", "280px")
-  .style("background", "rgba(255,255,255,0.96)")
-  .style("border", "1px solid rgba(0,0,0,0.18)")
-  .style("border-radius", "10px")
-  .style("box-shadow", "0 14px 35px rgba(0,0,0,0.22)")
-  .style("font-family", "Arial, sans-serif")
-  .style("overflow", "hidden")
-  .style("pointer-events", "auto")
-  .style("opacity", 0)
-  .style("transform", "translateY(12px) scale(0.96)")
-  .style("transition", "opacity 220ms ease, transform 220ms ease");
+  // Tooltip for hover interaction
+  const tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("background", "white")
+    .style("border", "1px solid #999")
+    .style("border-radius", "6px")
+    .style("padding", "8px 10px")
+    .style("font-size", "12px")
+    .style("line-height", "1.4")
+    .style("box-shadow", "0 2px 8px rgba(0,0,0,0.18)")
+    .style("pointer-events", "none")
+    .style("opacity", 0);
 
-function closeAnimalCard() {
-  animalCard
+  const animalCard = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("width", "280px")
+    .style("background", "rgba(255,255,255,0.96)")
+    .style("border", "1px solid rgba(0,0,0,0.18)")
+    .style("border-radius", "10px")
+    .style("box-shadow", "0 14px 35px rgba(0,0,0,0.22)")
+    .style("font-family", "Arial, sans-serif")
+    .style("overflow", "hidden")
+    .style("pointer-events", "auto")
     .style("opacity", 0)
-    .style("transform", "translateY(12px) scale(0.96)");
-}
+    .style("transform", "translateY(12px) scale(0.96)")
+    .style("transition", "opacity 220ms ease, transform 220ms ease");
 
-function getCardPosition(anchorElement) {
-  const cardWidth = 280;
-  const cardHeight = 330;
-  const padding = 12;
-  const rect = anchorElement.getBoundingClientRect();
-
-  let left = rect.right + padding;
-  let top = rect.top + (rect.height / 2) - (cardHeight / 2);
-
-  if (left + cardWidth > window.innerWidth - padding) {
-    left = rect.left - cardWidth - padding;
+  function closeAnimalCard() {
+    animalCard
+      .style("opacity", 0)
+      .style("transform", "translateY(12px) scale(0.96)");
   }
 
-  if (left < padding) {
-    left = padding;
+  function getCardPosition(anchorElement) {
+    const cardWidth = 280;
+    const cardHeight = 330;
+    const padding = 12;
+    const rect = anchorElement.getBoundingClientRect();
+
+    let left = rect.right + padding;
+    let top = rect.top + (rect.height / 2) - (cardHeight / 2);
+
+    if (left + cardWidth > window.innerWidth - padding) {
+      left = rect.left - cardWidth - padding;
+    }
+
+    if (left < padding) {
+      left = padding;
+    }
+
+    if (top + cardHeight > window.innerHeight - padding) {
+      top = window.innerHeight - cardHeight - padding;
+    }
+
+    if (top < padding) {
+      top = padding;
+    }
+
+    return { left, top };
   }
 
-  if (top + cardHeight > window.innerHeight - padding) {
-    top = window.innerHeight - cardHeight - padding;
-  }
+  function showAnimalCard(d, anchorElement) {
+    if (window.CrossGraph) {
+      window.CrossGraph.select({ name: d.name, level: d.level }, anchorElement);
+      return;
+    }
 
-  if (top < padding) {
-    top = padding;
-  }
+    const imageUrl = localAnimalImages[d.name];
+    const imageSource = localAnimalImageSources.find(item => item.node === d.name);
+    const position = getCardPosition(anchorElement);
 
-  return { left, top };
-}
+    animalCard
+      .html(`
+        <div style="padding:12px 14px 10px;">
+          <button id="animal-card-close" style="float:right;border:0;background:#eee;border-radius:50%;width:24px;height:24px;cursor:pointer;">x</button>
+          <div style="font-size:13px;color:#666;margin-bottom:4px;">${d.level}</div>
+          <div style="font-size:18px;font-weight:bold;line-height:1.2;padding-right:28px;">${d.name}</div>
+        </div>
+        <div id="animal-image-wrap" style="height:190px;background:#f1f1f1;display:flex;align-items:center;justify-content:center;color:#666;font-size:13px;">
+          ${imageUrl
+            ? `<img src="${imageUrl}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<div style="padding:16px;text-align:center;">No local image yet.</div>`}
+        </div>
+        <div style="padding:10px 14px 14px;font-size:12px;line-height:1.45;color:#444;">
+          ${imageUrl ? "Loaded from local images." : "No local image is available for this node yet."}
+          ${imageSource ? `<br><span style="color:#777;">Source: ${imageSource.source}</span>` : ""}
+        </div>
+      `)
+      .style("left", `${position.left}px`)
+      .style("top", `${position.top}px`)
+      .style("opacity", 1)
+      .style("transform", "translateY(0) scale(1)");
 
-function showAnimalCard(d, anchorElement) {
-  if (window.CrossGraph) {
-    window.CrossGraph.select({ name: d.name, level: d.level }, anchorElement);
-    return;
-  }
-
-  const imageUrl = localAnimalImages[d.name];
-  const imageSource = localAnimalImageSources.find(item => item.node === d.name);
-  const position = getCardPosition(anchorElement);
-
-  animalCard
-    .html(`
-      <div style="padding:12px 14px 10px;">
-        <button id="animal-card-close" style="float:right;border:0;background:#eee;border-radius:50%;width:24px;height:24px;cursor:pointer;">x</button>
-        <div style="font-size:13px;color:#666;margin-bottom:4px;">${d.level}</div>
-        <div style="font-size:18px;font-weight:bold;line-height:1.2;padding-right:28px;">${d.name}</div>
-      </div>
-      <div id="animal-image-wrap" style="height:190px;background:#f1f1f1;display:flex;align-items:center;justify-content:center;color:#666;font-size:13px;">
-        ${imageUrl
-          ? `<img src="${imageUrl}" alt="${d.name}" style="width:100%;height:100%;object-fit:cover;">`
-          : `<div style="padding:16px;text-align:center;">No local image yet.</div>`}
-      </div>
-      <div style="padding:10px 14px 14px;font-size:12px;line-height:1.45;color:#444;">
-        ${imageUrl ? "Loaded from local images." : "No local image is available for this node yet."}
-        ${imageSource ? `<br><span style="color:#777;">Source: ${imageSource.source}</span>` : ""}
-      </div>
-    `)
-    .style("left", `${position.left}px`)
-    .style("top", `${position.top}px`)
-    .style("opacity", 1)
-    .style("transform", "translateY(0) scale(1)");
-
-  d3.select("#animal-card-close").on("click", function(event) {
-    event.stopPropagation();
-    closeAnimalCard();
-  });
-}
-// Title
-svg.append("text")
-  .attr("x", width / 2)
-  .attr("y", 30)
-  .attr("text-anchor", "middle")
-  .attr("font-size", "22px")
-  .attr("font-weight", "bold")
-  .attr("fill", "#111")
-  .text("Species Extinction Sankey Diagram");
-
-// Subtitle
-svg.append("text")
-  .attr("x", width / 2)
-  .attr("y", 55)
-  .attr("text-anchor", "middle")
-  .attr("font-size", "13px")
-  .attr("fill", "#555")
-  .text("Phylum -> Class -> Order -> Family -> Extinct");
-
-// Legend
-const legendData = [
-  { label: "Phylum", color: levelColor.Phylum },
-  { label: "Class", color: levelColor.Class },
-  { label: "Order", color: levelColor.Order },
-  { label: "Family", color: levelColor.Family },
-  { label: "Extinct", color: statusColor.Extinct }
-];
-
-const legend = svg.append("g")
-  .attr("transform", `translate(${width - 220}, 20)`);
-
-legend.selectAll("rect")
-  .data(legendData)
-  .enter()
-  .append("rect")
-  .attr("x", 0)
-  .attr("y", (d, i) => i * 18)
-  .attr("width", 12)
-  .attr("height", 12)
-  .attr("fill", d => d.color)
-  .attr("stroke", "#333")
-  .attr("stroke-width", 0.4);
-
-legend.selectAll("text")
-  .data(legendData)
-  .enter()
-  .append("text")
-  .attr("x", 18)
-  .attr("y", (d, i) => i * 18 + 10)
-  .attr("font-size", "11px")
-  .attr("fill", "#333")
-  .text(d => d.label);
-
-// Instruction text
-svg.append("text")
-  .attr("x", width / 2)
-  .attr("y", height - 12)
-  .attr("text-anchor", "middle")
-  .attr("font-size", "11px")
-  .attr("fill", "#666")
-  .text("Hover over a flow to see count and percentages. Click a node/name to show an image. Click a flow to focus its path. Click blank space to reset.");
-
-// Create Sankey layout
-const sankey = d3.sankey()
-  .nodeWidth(16)
-  .nodePadding(12)
-  .nodeSort((a, b) => b.value - a.value)
-  .extent([
-    [margin.left, margin.top],
-    [width - margin.right, height - margin.bottom]
-  ]);
-
-// Create unique node id
-function makeId(level, name) {
-  return `${level}|||${name}`;
-}
-
-// Use redlistCategory to identify extinct records
-function getConservationStatus(d) {
-  const redlistCategory = (d.redlistCategory || "").trim();
-
-  if (redlistCategory === "Extinct") {
-    return "Extinct";
-  }
-
-  return "Other";
-}
-
-// Format percent
-function formatPercent(value, total) {
-  if (!total || total === 0) {
-    return "0.0%";
-  }
-
-  return `${((value / total) * 100).toFixed(1)}%`;
-}
-
-// Load CSV
-d3.csv("extinction.csv").then(function(data) {
-
-  // Add readable conservation status based on redlistCategory
-  data.forEach(d => {
-    d.conservation_status = getConservationStatus(d);
-  });
-
-  // Keep only extinct records with all required fields
-  data = data.filter(d =>
-    d.phylum_name &&
-    d.class_name &&
-    d.order_name &&
-    d.family_name &&
-    d.conservation_status === "Extinct"
-  );
-
-  // Keep top 30 families to reduce clutter
-  const topFamilies = Array.from(
-    d3.rollup(data, v => v.length, d => d.family_name),
-    ([key, value]) => ({ key, value })
-  )
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 30)
-    .map(d => d.key);
-
-  const familySet = new Set(topFamilies);
-  data = data.filter(d => familySet.has(d.family_name));
-
-  const totalDisplayedRecords = data.length;
-
-  // Count links between two columns
-  function countLinks(sourceCol, targetCol, sourceLevel, targetLevel) {
-    const grouped = Array.from(
-      d3.rollup(data, v => v.length, d => d[sourceCol], d => d[targetCol]),
-      ([sourceKey, targetMap]) => ({
-        key: sourceKey,
-        values: Array.from(targetMap, ([targetKey, value]) => ({ key: targetKey, value }))
-      })
-    );
-
-    const links = [];
-
-    grouped.forEach(sourceGroup => {
-      sourceGroup.values.forEach(targetGroup => {
-        links.push({
-          source: makeId(sourceLevel, sourceGroup.key),
-          target: makeId(targetLevel, targetGroup.key),
-          sourceName: sourceGroup.key,
-          targetName: targetGroup.key,
-          sourceLevel: sourceLevel,
-          targetLevel: targetLevel,
-          value: targetGroup.value
-        });
-      });
+    d3.select("#animal-card-close").on("click", function(event) {
+      event.stopPropagation();
+      closeAnimalCard();
     });
-
-    return links;
   }
+  // Title
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "22px")
+    .attr("font-weight", "bold")
+    .attr("fill", "#111")
+    .text("Species Extinction Sankey Diagram");
 
-  // Build 5-layer Sankey links
-  const rawLinks = [
-    ...countLinks("phylum_name", "class_name", "Phylum", "Class"),
-    ...countLinks("class_name", "order_name", "Class", "Order"),
-    ...countLinks("order_name", "family_name", "Order", "Family"),
-    ...countLinks("family_name", "conservation_status", "Family", "Status")
-  ];
-
-  // Build nodes
-  const nodeMap = new Map();
-
-  rawLinks.forEach(link => {
-    if (!nodeMap.has(link.source)) {
-      nodeMap.set(link.source, {
-        id: link.source,
-        name: link.sourceName,
-        level: link.sourceLevel
-      });
-    }
-
-    if (!nodeMap.has(link.target)) {
-      nodeMap.set(link.target, {
-        id: link.target,
-        name: link.targetName,
-        level: link.targetLevel
-      });
-    }
-  });
-
-  const nodes = Array.from(nodeMap.values());
-
-  // Convert node ids to indexes
-  const nodeIndex = new Map(nodes.map((d, i) => [d.id, i]));
-
-  const links = rawLinks.map(d => ({
-    source: nodeIndex.get(d.source),
-    target: nodeIndex.get(d.target),
-    value: d.value
-  }));
-
-  // Generate Sankey layout
-  const graph = sankey({
-    nodes: nodes.map(d => Object.assign({}, d)),
-    links: links.map(d => Object.assign({}, d))
-  });
-
-  // Column headers
-  const levels = ["Phylum", "Class", "Order", "Family", "Status"];
-
-  const headerData = levels.map(level => {
-    const levelNodes = graph.nodes.filter(d => d.level === level);
-
-    return {
-      level: level,
-      x: d3.mean(levelNodes, d => (d.x0 + d.x1) / 2)
-    };
-  });
-
-  svg.append("g")
-    .selectAll("text")
-    .data(headerData)
-    .enter()
-    .append("text")
-    .attr("x", d => d.x)
-    .attr("y", 78)
+  // Subtitle
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", 55)
     .attr("text-anchor", "middle")
     .attr("font-size", "13px")
-    .attr("font-weight", "bold")
-    .attr("fill", d => levelColor[d.level])
-    .text(d => d.level);
+    .attr("fill", "#555")
+    .text("Phylum -> Class -> Order -> Family -> Extinct");
 
-  // Groups
-  const linkGroup = svg.append("g").attr("fill", "none");
-  const nodeGroup = svg.append("g");
-  const labelGroup = svg.append("g");
+  // Legend
+  const legendData = [
+    { label: "Phylum", color: levelColor.Phylum },
+    { label: "Class", color: levelColor.Class },
+    { label: "Order", color: levelColor.Order },
+    { label: "Family", color: levelColor.Family },
+    { label: "Extinct", color: statusColor.Extinct }
+  ];
 
-  let focusedLinks = null;
-  let focusedNodes = null;
+  const rectSize = Math.max(0.8 * vw);
+  const spacing = Math.max(1.2 * vw);
+  const legendRightOffset = 12 * vw;
 
-  function hasFocus() {
-    return focusedLinks !== null && focusedNodes !== null;
-  }
+  const legend = svg.append("g")
+    .attr("transform", `translate(${width - legendRightOffset}, ${5 * vh})`);
 
-  // Draw links
-  const linkSelection = linkGroup
-    .selectAll("path")
-    .data(graph.links)
-    .enter()
-    .append("path")
-    .attr("d", d3.sankeyLinkHorizontal())
-    .attr("stroke", d => {
-      if (d.target.level === "Status") {
-        return statusColor[d.target.name] || levelColor.Status;
-      }
-      return "#B0B0B0";
-    })
-    .attr("stroke-opacity", 0.38)
-    .attr("stroke-width", d => Math.max(1, d.width))
-    .style("cursor", "pointer")
-    .on("click", function(event, d) {
-      event.stopPropagation();
-      focusOnLink(d);
-    })
-    .on("mouseover", function(d) {
-      if (!hasFocus()) {
-        d3.select(this)
-          .attr("stroke-opacity", 0.9)
-          .attr("stroke-width", Math.max(3, d.width + 2));
-      }
-
-      const sourceShare = formatPercent(d.value, d.source.value);
-      const totalShare = formatPercent(d.value, totalDisplayedRecords);
-
-      tooltip
-        .style("opacity", 1)
-        .html(`
-          <strong>${d.source.name} -> ${d.target.name}</strong><br>
-          Count: ${d.value} species<br>
-          Share of ${d.source.name}: ${sourceShare}<br>
-          Share of all displayed records: ${totalShare}
-        `);
-    })
-    .on("mousemove", function(event) {
-      tooltip
-        .style("left", (event.pageX + 14) + "px")
-        .style("top", (event.pageY + 14) + "px");
-    })
-    .on("mouseout", function(d) {
-      if (!hasFocus()) {
-        d3.select(this)
-          .attr("stroke-opacity", 0.38)
-          .attr("stroke-width", Math.max(1, d.width));
-      }
-
-      tooltip.style("opacity", 0);
-    });
-
-  // Draw nodes
-  const nodeSelection = nodeGroup
-    .selectAll("rect")
-    .data(graph.nodes)
+  legend.selectAll("rect")
+    .data(legendData)
     .enter()
     .append("rect")
-    .attr("x", d => d.x0)
-    .attr("y", d => d.y0)
-    .attr("width", d => d.x1 - d.x0)
-    .attr("height", d => Math.max(1, d.y1 - d.y0))
-    .attr("rx", 2)
-    .attr("ry", 2)
-    .attr("fill", d => {
-      if (d.level === "Status") {
-        return statusColor[d.name] || levelColor.Status;
-      }
-      return levelColor[d.level];
-    })
+    .attr("x", 0)
+    .attr("y", (d, i) => i * spacing)
+    .attr("width", rectSize)
+    .attr("height", rectSize)
+    .attr("fill", d => d.color)
     .attr("stroke", "#333")
-    .attr("stroke-width", 0.6)
-    .style("cursor", d => d.level === "Status" ? "default" : "pointer")
-    .on("click", function(event, d) {
-      event.stopPropagation();
-      if (d.level !== "Status") {
-        showAnimalCard(d, this);
-      }
-    })
-    .on("mouseover", function(event, d) {
-      if (!hasFocus()) {
-        d3.select(this).attr("stroke-width", 1.8);
-      }
+    .attr("stroke-width", 0.4);
 
-      const nodeShare = formatPercent(d.value, totalDisplayedRecords);
-
-      tooltip
-        .style("opacity", 1)
-        .html(`
-          <strong>${d.level}: ${d.name}</strong><br>
-          Count: ${d.value} species<br>
-          Share of all displayed records: ${nodeShare}
-        `);
-    })
-    .on("mousemove", function(event) {
-      tooltip
-        .style("left", (event.pageX + 14) + "px")
-        .style("top", (event.pageY + 14) + "px");
-    })
-    .on("mouseout", function() {
-      if (!hasFocus()) {
-        d3.select(this).attr("stroke-width", 0.6);
-      }
-      tooltip.style("opacity", 0);
-    });
-
-  // ==================== SANKEY CROSS GRAPH HOOK START ====================
-  window.addEventListener("crossGraphSelect", function(event) {
-    const selectedName = event.detail && event.detail.selectedName;
-    if (!window.CrossGraph) return;
-    window.CrossGraph.applyHighlight(nodeSelection, selectedName);
-    window.CrossGraph.applyHighlight(labelSelection, selectedName);
-  });
-  // ==================== SANKEY CROSS GRAPH HOOK END ====================
-
-  // Draw labels
-  const labelSelection = labelGroup
-    .selectAll("text.node-label")
-    .data(graph.nodes)
+  legend.selectAll("text")
+    .data(legendData)
     .enter()
     .append("text")
-    .attr("class", "node-label")
-    .attr("x", d => {
-      if (d.level === "Phylum") return d.x1 + 8;
-      if (d.level === "Status") return d.x0 - 8;
-      return d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6;
-    })
-    .attr("y", d => (d.y0 + d.y1) / 2)
-    .attr("dy", "0.35em")
-    .attr("text-anchor", d => {
-      if (d.level === "Phylum") return "start";
-      if (d.level === "Status") return "end";
-      return d.x0 < width / 2 ? "start" : "end";
-    })
-    .attr("font-size", d => {
-      const nodeHeight = d.y1 - d.y0;
-      if (d.level === "Status") return "12px";
-      if (nodeHeight < 6) return "6px";
-      if (nodeHeight < 10) return "7px";
-      if (nodeHeight < 16) return "8px";
-      return "10px";
-    })
-    .attr("font-weight", d => d.level === "Status" ? "bold" : "normal")
-    .attr("fill", "#222")
-    .style("pointer-events", d => d.level === "Status" ? "none" : "auto")
-    .style("cursor", d => d.level === "Status" ? "default" : "pointer")
-    .on("click", function(event, d) {
-      event.stopPropagation();
-      showAnimalCard(d, this);
-    })
-    .text(d => d.name);
+    .attr("x", rectSize + 6)
+    .attr("y", (d, i) => i * spacing + (rectSize * 0.85))
+    .attr("font-size", `${Math.max(10, 0.7 * vw)}px`)
+    .attr("fill", "#333")
+    .text(d => d.label);
 
-  // Get ancestors of a link's source
-  function addAncestors(startNode, selectedNodes, selectedLinks) {
-    const queue = [startNode];
+  // Instruction text
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 12)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "11px")
+    .attr("fill", "#666")
+    .text("Hover over a flow to see count and percentages. Click a node/name to show an image. Click a flow to focus its path. Click blank space to reset.");
 
-    while (queue.length > 0) {
-      const current = queue.shift();
+  // Create Sankey layout
+  const sankey = d3.sankey()
+    .nodeWidth(16)
+    .nodePadding(12)
+    .nodeSort((a, b) => b.value - a.value)
+    .extent([
+      [margin.left, margin.top],
+      [width - margin.right, height - margin.bottom]
+    ]);
 
-      graph.links.forEach(link => {
-        if (link.target === current && !selectedLinks.has(link)) {
-          selectedLinks.add(link);
+  // Create unique node id
+  function makeId(level, name) {
+    return `${level}|||${name}`;
+  }
 
-          if (!selectedNodes.has(link.source)) {
-            selectedNodes.add(link.source);
-            queue.push(link.source);
-          }
+  // Use redlistCategory to identify extinct records
+  function getConservationStatus(d) {
+    const redlistCategory = (d.redlistCategory || "").trim();
 
-          if (!selectedNodes.has(link.target)) {
-            selectedNodes.add(link.target);
-          }
-        }
-      });
+    if (redlistCategory === "Extinct") {
+      return "Extinct";
     }
+
+    return "Other";
   }
 
-  // Get descendants of a link's target
-  function addDescendants(startNode, selectedNodes, selectedLinks) {
-    const queue = [startNode];
-
-    while (queue.length > 0) {
-      const current = queue.shift();
-
-      graph.links.forEach(link => {
-        if (link.source === current && !selectedLinks.has(link)) {
-          selectedLinks.add(link);
-
-          if (!selectedNodes.has(link.target)) {
-            selectedNodes.add(link.target);
-            queue.push(link.target);
-          }
-
-          if (!selectedNodes.has(link.source)) {
-            selectedNodes.add(link.source);
-          }
-        }
-      });
+  // Format percent
+  function formatPercent(value, total) {
+    if (!total || total === 0) {
+      return "0.0%";
     }
+
+    return `${((value / total) * 100).toFixed(1)}%`;
   }
 
-  // Click one link and keep only its related full path
-  function focusOnLink(clickedLink) {
-    const selectedNodes = new Set();
-    const selectedLinks = new Set();
+  // Load CSV
+  d3.csv("extinction.csv").then(function(data) {
 
-    selectedLinks.add(clickedLink);
-    selectedNodes.add(clickedLink.source);
-    selectedNodes.add(clickedLink.target);
+    // Add readable conservation status based on redlistCategory
+    data.forEach(d => {
+      d.conservation_status = getConservationStatus(d);
+    });
 
-    addAncestors(clickedLink.source, selectedNodes, selectedLinks);
-    addDescendants(clickedLink.target, selectedNodes, selectedLinks);
+    // Keep only extinct records with all required fields
+    data = data.filter(d =>
+      d.phylum_name &&
+      d.class_name &&
+      d.order_name &&
+      d.family_name &&
+      d.conservation_status === "Extinct"
+    );
 
-    focusedLinks = selectedLinks;
-    focusedNodes = selectedNodes;
+    // Keep top 30 families to reduce clutter
+    const topFamilies = Array.from(
+      d3.rollup(data, v => v.length, d => d.family_name),
+      ([key, value]) => ({ key, value })
+    )
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 30)
+      .map(d => d.key);
 
-    linkSelection
-      .attr("stroke-opacity", d => focusedLinks.has(d) ? 0.85 : 0)
-      .attr("stroke-width", d => focusedLinks.has(d) ? Math.max(2, d.width) : 0);
+    const familySet = new Set(topFamilies);
+    data = data.filter(d => familySet.has(d.family_name));
 
-    nodeSelection
-      .attr("opacity", d => focusedNodes.has(d) ? 1 : 0)
-      .attr("stroke-width", d => focusedNodes.has(d) ? 0.6 : 0);
+    const totalDisplayedRecords = data.length;
 
-    labelSelection
-      .attr("opacity", d => focusedNodes.has(d) ? 1 : 0);
-  }
+    // Count links between two columns
+    function countLinks(sourceCol, targetCol, sourceLevel, targetLevel) {
+      const grouped = Array.from(
+        d3.rollup(data, v => v.length, d => d[sourceCol], d => d[targetCol]),
+        ([sourceKey, targetMap]) => ({
+          key: sourceKey,
+          values: Array.from(targetMap, ([targetKey, value]) => ({ key: targetKey, value }))
+        })
+      );
 
-  // Reset everything
-  function resetFocus() {
-    focusedLinks = null;
-    focusedNodes = null;
-    closeAnimalCard();
+      const links = [];
 
-    linkSelection
+      grouped.forEach(sourceGroup => {
+        sourceGroup.values.forEach(targetGroup => {
+          links.push({
+            source: makeId(sourceLevel, sourceGroup.key),
+            target: makeId(targetLevel, targetGroup.key),
+            sourceName: sourceGroup.key,
+            targetName: targetGroup.key,
+            sourceLevel: sourceLevel,
+            targetLevel: targetLevel,
+            value: targetGroup.value
+          });
+        });
+      });
+
+      return links;
+    }
+
+    // Build 5-layer Sankey links
+    const rawLinks = [
+      ...countLinks("phylum_name", "class_name", "Phylum", "Class"),
+      ...countLinks("class_name", "order_name", "Class", "Order"),
+      ...countLinks("order_name", "family_name", "Order", "Family"),
+      ...countLinks("family_name", "conservation_status", "Family", "Status")
+    ];
+
+    // Build nodes
+    const nodeMap = new Map();
+
+    rawLinks.forEach(link => {
+      if (!nodeMap.has(link.source)) {
+        nodeMap.set(link.source, {
+          id: link.source,
+          name: link.sourceName,
+          level: link.sourceLevel
+        });
+      }
+
+      if (!nodeMap.has(link.target)) {
+        nodeMap.set(link.target, {
+          id: link.target,
+          name: link.targetName,
+          level: link.targetLevel
+        });
+      }
+    });
+
+    const nodes = Array.from(nodeMap.values());
+
+    // Convert node ids to indexes
+    const nodeIndex = new Map(nodes.map((d, i) => [d.id, i]));
+
+    const links = rawLinks.map(d => ({
+      source: nodeIndex.get(d.source),
+      target: nodeIndex.get(d.target),
+      value: d.value
+    }));
+
+    // Generate Sankey layout
+    const graph = sankey({
+      nodes: nodes.map(d => Object.assign({}, d)),
+      links: links.map(d => Object.assign({}, d))
+    });
+
+    // Column headers
+    const levels = ["Phylum", "Class", "Order", "Family", "Status"];
+
+    const headerData = levels.map(level => {
+      const levelNodes = graph.nodes.filter(d => d.level === level);
+
+      return {
+        level: level,
+        x: d3.mean(levelNodes, d => (d.x0 + d.x1) / 2)
+      };
+    });
+
+    svg.append("g")
+      .selectAll("text")
+      .data(headerData)
+      .enter()
+      .append("text")
+      .attr("x", d => d.x)
+      .attr("y", 78)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "13px")
+      .attr("font-weight", "bold")
+      .attr("fill", d => levelColor[d.level])
+      .text(d => d.level);
+
+    // Groups
+    const linkGroup = svg.append("g").attr("fill", "none");
+    const nodeGroup = svg.append("g");
+    const labelGroup = svg.append("g");
+
+    let focusedLinks = null;
+    let focusedNodes = null;
+
+    function hasFocus() {
+      return focusedLinks !== null && focusedNodes !== null;
+    }
+
+    // Draw links
+    const linkSelection = linkGroup
+      .selectAll("path")
+      .data(graph.links)
+      .enter()
+      .append("path")
+      .attr("class", "sankey-link")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => {
+        if (d.target.level === "Status") {
+          return statusColor[d.target.name] || levelColor.Status;
+        }
+        return "#B0B0B0";
+      })
       .attr("stroke-opacity", 0.38)
-      .attr("stroke-width", d => Math.max(1, d.width));
+      .attr("stroke-width", d => Math.max(1, d.width))
+      .style("cursor", "pointer")
+      .on("click", function(event, d) {
+        event.stopPropagation();
+        focusOnLink(d);
+      })
+      .on("mouseover", function(event, d) {
+        if (!hasFocus()) {
+          d3.select(this)
+            .attr("stroke-opacity", 0.9)
+            .attr("stroke-width", Math.max(3, d.width + 2));
+        }
 
-    nodeSelection
-      .attr("opacity", 1)
-      .attr("stroke-width", 0.6);
+        const sourceShare = formatPercent(d.value, d.source.value);
+        const totalShare = formatPercent(d.value, totalDisplayedRecords);
 
-    labelSelection
-      .attr("opacity", 1);
-  }
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${d.source.name} -> ${d.target.name}</strong><br>
+            Count: ${d.value} species<br>
+            Share of ${d.source.name}: ${sourceShare}<br>
+            Share of all displayed records: ${totalShare}
+          `);
+      })
+      .on("mousemove", function(event) {
+        tooltip
+          .style("left", (event.pageX + 14) + "px")
+          .style("top", (event.pageY + 14) + "px");
+      })
+      .on("mouseout", function(event, d) {
+        if (!hasFocus()) {
+          d3.select(this)
+            .attr("stroke-opacity", 0.38)
+            .attr("stroke-width", Math.max(1, d.width));
+        }
 
-  // Click blank space to reset
-  svg.on("click", function() {
-    resetFocus();
+        tooltip.style("opacity", 0);
+      });
+
+    // Draw nodes
+    const nodeSelection = nodeGroup
+      .selectAll("rect")
+      .data(graph.nodes)
+      .enter()
+      .append("rect")
+      .attr("class", "sankey-node")
+      .attr("x", d => d.x0)
+      .attr("y", d => d.y0)
+      .attr("width", d => d.x1 - d.x0)
+      .attr("height", d => Math.max(1, d.y1 - d.y0))
+      .attr("rx", 2)
+      .attr("ry", 2)
+      .attr("fill", d => {
+        if (d.level === "Status") {
+          return statusColor[d.name] || levelColor.Status;
+        }
+        return levelColor[d.level];
+      })
+      .attr("stroke", "#333")
+      .attr("stroke-width", 0.6)
+      .style("cursor", d => d.level === "Status" ? "default" : "pointer")
+      .on("click", function(event, d) {
+        if (d.level !== "Status") {
+          event.stopPropagation();
+          showAnimalCard(d, this);
+        }
+      })
+      .on("mouseover", function(event, d) {
+        if (!hasFocus()) {
+          d3.select(this).attr("stroke-width", 1.8);
+        }
+
+        const nodeShare = formatPercent(d.value, totalDisplayedRecords);
+
+        tooltip
+          .style("opacity", 1)
+          .html(`
+            <strong>${d.level}: ${d.name}</strong><br>
+            Count: ${d.value} species<br>
+            Share of all displayed records: ${nodeShare}
+          `);
+      })
+      .on("mousemove", function(event) {
+        tooltip
+          .style("left", (event.pageX + 14) + "px")
+          .style("top", (event.pageY + 14) + "px");
+      })
+      .on("mouseout", function() {
+        if (!hasFocus()) {
+          d3.select(this).attr("stroke-width", 0.6);
+        }
+        tooltip.style("opacity", 0);
+      });
+
+    // Draw labels
+    const labelSelection = labelGroup
+      .selectAll("text.node-label")
+      .data(graph.nodes)
+      .enter()
+      .append("text")
+      .attr("class", "node-label")
+      .attr("x", d => {
+        if (d.level === "Phylum") return d.x1 + 8;
+        if (d.level === "Status") return d.x0 - 8;
+        return d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6;
+      })
+      .attr("y", d => (d.y0 + d.y1) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => {
+        if (d.level === "Phylum") return "start";
+        if (d.level === "Status") return "end";
+        return d.x0 < width / 2 ? "start" : "end";
+      })
+      .attr("font-size", d => {
+        const nodeHeight = d.y1 - d.y0;
+        if (d.level === "Status") return "12px";
+        if (nodeHeight < 6) return "6px";
+        if (nodeHeight < 10) return "7px";
+        if (nodeHeight < 16) return "8px";
+        return "10px";
+      })
+      .attr("font-weight", d => d.level === "Status" ? "bold" : "normal")
+      .attr("fill", "#222")
+      .style("pointer-events", d => d.level === "Status" ? "none" : "auto")
+      .style("cursor", d => d.level === "Status" ? "default" : "pointer")
+      .on("click", function(event, d) {
+        event.stopPropagation();
+        showAnimalCard(d, this);
+      })
+      .text(d => d.name);
+
+    // Get ancestors of a link's source
+    function addAncestors(startNode, selectedNodes, selectedLinks) {
+      const queue = [startNode];
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+
+        graph.links.forEach(link => {
+          if (link.target === current && !selectedLinks.has(link)) {
+            selectedLinks.add(link);
+
+            if (!selectedNodes.has(link.source)) {
+              selectedNodes.add(link.source);
+              queue.push(link.source);
+            }
+
+            if (!selectedNodes.has(link.target)) {
+              selectedNodes.add(link.target);
+            }
+          }
+        });
+      }
+    }
+
+    // Get descendants of a link's target
+    function addDescendants(startNode, selectedNodes, selectedLinks) {
+      const queue = [startNode];
+
+      while (queue.length > 0) {
+        const current = queue.shift();
+
+        graph.links.forEach(link => {
+          if (link.source === current && !selectedLinks.has(link)) {
+            selectedLinks.add(link);
+
+            if (!selectedNodes.has(link.target)) {
+              selectedNodes.add(link.target);
+              queue.push(link.target);
+            }
+
+            if (!selectedNodes.has(link.source)) {
+              selectedNodes.add(link.source);
+            }
+          }
+        });
+      }
+    }
+
+    // Click one link and keep only its related full path
+    function focusOnLink(clickedLink) {
+      const selectedNodes = new Set();
+      const selectedLinks = new Set();
+
+      selectedLinks.add(clickedLink);
+      selectedNodes.add(clickedLink.source);
+      selectedNodes.add(clickedLink.target);
+
+      addAncestors(clickedLink.source, selectedNodes, selectedLinks);
+      addDescendants(clickedLink.target, selectedNodes, selectedLinks);
+
+      focusedLinks = selectedLinks;
+      focusedNodes = selectedNodes;
+
+      linkSelection
+        .attr("stroke-opacity", d => focusedLinks.has(d) ? 0.85 : 0)
+        .attr("stroke-width", d => focusedLinks.has(d) ? Math.max(2, d.width) : 0);
+
+      nodeSelection
+        .attr("opacity", d => focusedNodes.has(d) ? 1 : 0)
+        .attr("stroke-width", d => focusedNodes.has(d) ? 0.6 : 0);
+
+      labelSelection
+        .attr("opacity", d => focusedNodes.has(d) ? 1 : 0);
+    }
+
+    // Reset everything
+    function resetFocus() {
+      focusedLinks = null;
+      focusedNodes = null;
+      closeAnimalCard();
+
+      linkSelection
+        .attr("stroke-opacity", 0.38)
+        .attr("stroke-width", d => Math.max(1, d.width));
+
+      nodeSelection
+        .attr("opacity", 1)
+        .attr("stroke-width", 0.6);
+
+      labelSelection
+        .attr("opacity", 1);
+    }
+
+    
+
+    // Click blank space to reset
+    svg.on("click", function() {
+      resetFocus();
+      if (window.CrossGraph) window.CrossGraph.clear();
+    });
+
   });
+}
 
+// ==================== SANKEY CROSS GRAPH HOOK START ====================
+window.addEventListener("crossGraphSelect", function(event) {
+  const selectedName = event.detail && event.detail.selectedName;
+  if (!window.CrossGraph) return;
+  
+  if (typeof window.CrossGraph.applyHighlight === "function") {
+    window.CrossGraph.applyHighlight(selectedName); 
+  }
 });
-
-
-
-
-
-
+// ==================== SANKEY CROSS GRAPH HOOK END ====================
 
