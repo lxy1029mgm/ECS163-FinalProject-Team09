@@ -1,16 +1,11 @@
 ## Description 
 - Clearly describe the repository components and structures in a few paragraphs
 - ## Repository Structure
-
-## Repository Structure
-
 ```text
 ECS163-FinalProject-Team09/
-│
-├── README.md                   # Project documentation
-├── index.html                  # Main webpage entry point
-├── continents2.csv             # Processed continent-related data
-├── extinction.csv              # Processed extinction dataset
+├── index.html                  #  # Main webpage entry point; right-click this file and select "Open with Live Server" to run the project locally
+├── continents2.csv             # continent-related data
+├── extinction.csv              # extinction dataset
 ├── local-image-map.js          # Mapping file for local image paths
 ├── species-image-map.js        # Mapping file for species image paths
 │
@@ -27,7 +22,7 @@ ECS163-FinalProject-Team09/
 │   ├── sankey.js
 │   └── timeline.js
 │
-├── sankey_local/               # Local Sankey-related files and supporting resources
+├── sankey_local/               # Sankey-related files
 │   ├── images/
 │   ├── vendor/
 │   ├── index.html
@@ -35,7 +30,7 @@ ECS163-FinalProject-Team09/
 │   ├── main.js
 │   └── merged_cleaned_with_clean_lab...
 │
-└── vendor/                     # External JavaScript libraries
+└── vendor/                     # JavaScript libraries
     ├── d3.v5.min.js
     └── d3-sankey.min.js
 ```
