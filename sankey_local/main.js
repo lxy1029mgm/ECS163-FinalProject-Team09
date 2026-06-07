@@ -214,7 +214,7 @@ svg.append("text")
 // Readability note
 svg.append("text")
   .attr("x", width / 2)
-  .attr("y", height - 10)
+  .attr("y", height - 24)
   .attr("text-anchor", "middle")
   .attr("font-size", "11px")
   .attr("fill", "#888")
