@@ -11,9 +11,26 @@ const svg = container.append("svg")
         .attr("viewBox", `0 0 ${width} ${height}`)
         .style("background", "#121214");
 
+// title of the graph
+svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", 25)
+    .attr("text-anchor", "middle")
+    .style("fill", "#ffffff")
+    .style("font-size", "15px")
+    .style("font-weight", "600")
+    .text("Hierarchical Bubble Graph for Causes of Extinction");
+
 // divided into circles and texts layers for better z-index control
 const gCircles = svg.append("g").attr("class", "circles-layer");
 const gTexts = svg.append("g").attr("class", "texts-layer");
+
+// reserve space for title and notes
+const titleSpace = 30;
+const bottomSpace = 15;
+const chartLayer = svg.append("g")
+    .attr("transform", `translate(0,${titleSpace})`);
+
 
 // tooltip
 const tooltip = d3.select("#tooltip");
@@ -33,18 +50,16 @@ const classEmojiMap = {
 // (Level 1: Cause, fully shown)
 // Level 2: Class, shortened name (3 letters) for all
 // Level 3: Species, full name for active class title
+
+//setting of class labels to balance information and readability
 function getClassLabel(name, level, isActive) {
-
     const emoji = classEmojiMap[name] || "🐾";
-
     if (level === 2) {
-        return emoji;
+        return emoji;//only show emoji for class level to save space
     }
-
-    if (level === 3 && isActive) {
+    if (level === 3 && isActive) {// show full class name with emoji for the active class in species level
         return `${emoji} ${name}`;
     }
-
     return "";
 }
 
@@ -110,8 +125,21 @@ d3.csv("extinction.csv").then(data => {
 
     // create d3 hierarchy and pack layout
     const root = d3.hierarchy(rootData).sum(d => d.children ? 0 : 1);
-    const pack = d3.pack().size([width, height]).padding(30);
+    
+    // create pack layout with specified size and padding
+    const pack = d3.pack()
+        .size([
+            width,
+            height - titleSpace - bottomSpace// adjust height to account for reserved spaces
+        ])
+        .padding(30);// padding between circles, higher value for better separation
     pack(root);
+
+    // adjust y position of all nodes to account for the reserved title space at the top
+    root.descendants().forEach(d => {
+        d.y += titleSpace;
+    });
+
 
     // ---- Visualization Update Function ----
     function updateVisualization() {
@@ -178,12 +206,15 @@ d3.csv("extinction.csv").then(data => {
         // Class Level Circles
         if (currentLevel >= 2) {// only render class circles when in class or species level
 
+            // get class nodes under the active cause node
             const classNodes = activeCauseNode.descendants()
-                                            .filter(d => d.depth === 2);// get class nodes under the active cause node
+                                            .filter(d => d.depth === 2);//filter by depth to ensure only get class level nodes
 
-            const classCirclesBind = gCircles.selectAll(".class-circle")// bind class nodes to class circles
+            // bind class nodes to class circles
+            const classCirclesBind = gCircles.selectAll(".class-circle")
                                             .data(classNodes, d => d.data.name);// use class name as key
 
+            // append new circles for new class nodes
             const classCirclesEnter = classCirclesBind.enter()
                                                     .append("circle")
                                                     .attr("class", "class-circle")
@@ -192,7 +223,7 @@ d3.csv("extinction.csv").then(data => {
                                                     .attr("fill", "#17171a")
                                                     .attr("stroke", "#44444a")
                                                     .attr("stroke-width", 1.5) // Kept the actual visible stroke
-                                                    .style("cursor", "pointer")
+                                                    .style("cursor", "pointer")// pointer cursor to indicate interactivity
                                                     
                                                     // click to zoom into class level
                                                     .on("click", (event, d) => {
@@ -201,6 +232,9 @@ d3.csv("extinction.csv").then(data => {
                                                         if (window.CrossGraph) {
                                                             window.CrossGraph.select({ name: d.data.name, level: "Class" }, event.currentTarget);
                                                         }
+
+                                                        // only allow click when in class level and on the active cause node
+                                                        // prevent confusion when multiple class circles are shown
                                                         if (currentLevel !== 2) return;
                                                         currentLevel = 3; 
                                                         activeClassNode = d;
@@ -217,6 +251,9 @@ d3.csv("extinction.csv").then(data => {
                                                             </div>
                                                         `);
                                                     })
+
+                                                    // move tooltip with mouse
+                                                    // hide tooltip when mouse out
                                                     .on("mousemove", (event) => tooltip.style("left", (event.pageX + 15) + "px").style("top", (event.pageY + 15) + "px"))
                                                     .on("mouseout", () => tooltip.style("opacity", 0));
 
@@ -342,9 +379,12 @@ d3.csv("extinction.csv").then(data => {
         // Class Labels
         if (currentLevel >= 2) {// only handle class labels in class or species level
             const classNodes = activeCauseNode.descendants().filter(d => d.depth === 2);
+
+            // bind class nodes to class labels, use class name as key
             const classLabelBind = gTexts.selectAll(".class-label")
-                                        .data(classNodes, d => d.data.name);// bind class nodes to class labels, use class name as key
+                                        .data(classNodes, d => d.data.name);
             
+            // append text elements for new class nodes
             const classLabelMerge = classLabelBind.enter()
                 .append("text")
                 .attr("class", "class-label")
@@ -379,16 +419,21 @@ d3.csv("extinction.csv").then(data => {
 
     updateVisualization();// initial render
 
-    // ==================== BUBBLE CROSS GRAPH HOOK START ====================
+    // ---- Bubble Cross Graph Hook ----
+    // listen to selection events from cross graph and apply coordinated highlighting
+
+    // normalize names for better matching between graphs
     function normalizeCrossGraphName(value) {
         return String(value || "").trim().toUpperCase();
     }
 
+    // focus and zoom into the species node based on the selected species name and taxonId from cross graph
     function focusSpeciesFromCrossGraph(speciesName, taxonId) {
-        const targetName = normalizeCrossGraphName(speciesName);
-        const targetTaxonId = String(taxonId || "").trim();
-        if (!targetName && !targetTaxonId) return false;
+        const targetName = normalizeCrossGraphName(speciesName);// normalize the selected species name for matching
+        const targetTaxonId = String(taxonId || "").trim();// also consider taxonId for better match, as species names can be inconsistent
+        if (!targetName && !targetTaxonId) return false;// if no valid name or taxonId, cannot focus
 
+        // find the species node in the hierarchy that matches the selected name or taxonId, only search at depth 3 for species level
         const speciesNode = root.descendants().find(d =>
             d.depth === 3 &&
             (
@@ -396,12 +441,17 @@ d3.csv("extinction.csv").then(data => {
                 (targetTaxonId && String(d.data.taxonId || "").trim() === targetTaxonId)
             )
         );
+        // if no matching species node found, cannot focus
         if (!speciesNode || !speciesNode.parent || !speciesNode.parent.parent) return false;
 
+        // set the active cause and class nodes based on the found species node
+        // zoom into the class level to show the species
         activeCauseNode = speciesNode.parent.parent;
         activeClassNode = speciesNode.parent;
         currentLevel = 3;
 
+        // zoom into the target class node with a callback to update the visualization 
+        // apply highlights after the zoom transition
         zoomTo(activeClassNode, 0.65, () => {
             updateVisualization();
             window.setTimeout(() => {
@@ -413,22 +463,29 @@ d3.csv("extinction.csv").then(data => {
         return true;
     }
 
+    // listen to cross graph selection events
+    // apply coordinated highlighting based on the selected item and name
     window.addEventListener("crossGraphSelect", function(event) {
         const item = event.detail && event.detail.item;
         const selectedName = event.detail && event.detail.selectedName;
+
+        // if no cross graph or no valid selection, do nothing
         if (!window.CrossGraph) return;
 
+        // if the selection is from species level in cross graph
+        // focus and zoom into the corresponding species node in bubble graph
         if (item && item.level === "Species" && focusSpeciesFromCrossGraph(item.name, item.taxonId)) {
             return;
         }
 
+        // for cause or class level selection from cross graph, apply highlights based on the selected name
         window.CrossGraph.applyHighlight(gCircles.selectAll(".cause-circle"), selectedName);
         window.CrossGraph.applyHighlight(gCircles.selectAll(".class-circle"), selectedName);
         window.CrossGraph.applyHighlight(gCircles.selectAll(".species-dot"), selectedName);
         window.CrossGraph.applyHighlight(gTexts.selectAll(".cause-label"), selectedName);
         window.CrossGraph.applyHighlight(gTexts.selectAll(".class-label"), selectedName);
     });
-    // ==================== BUBBLE CROSS GRAPH HOOK END ====================
+
 
     // ---- Zoom Function ----
     function zoomTo(d, factor, callback) {
@@ -467,10 +524,14 @@ d3.csv("extinction.csv").then(data => {
                 currentK = 1; // reset zoom scale to default for cause level
 
                 updateVisualization();//update visualization to show cause level
+
+                const initialTy = (titleSpace - bottomSpace) / 2;// adjust initial translation to better center the view
+
+                // smoothly transition back to the original view
                 svg.transition()
                 .duration(1000)//animation
                 .ease(d3.easeCubicInOut)// smoothly transition back to the original view
-                .call(zoomBehavior.transform, d3.zoomIdentity);// reset zoom to original state
+                .call(zoomBehavior.transform, d3.zoomIdentity.translate(0, initialTy));// reset zoom to original state
             }
         }
     });
@@ -478,6 +539,7 @@ d3.csv("extinction.csv").then(data => {
     // ---- Tooltip Function ----
     function showTooltip(event, d) {
 
+        // highlight the hovered species dot: increase its size and fill with white
         d3.select(this)
             .transition()
             .duration(100)
@@ -513,7 +575,13 @@ d3.csv("extinction.csv").then(data => {
         tooltip.style("opacity", 0); // hide the tooltip
     }
 });
-
+svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 5)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "11px")
+    .attr("fill", "#888")
+    .text("Click circles to drill down. Hover for details. Click empty space to zoom out.");
 }
 // By Xinyi Li
 // Bubble Graph inspired by Mike Bostock's "Zoomable Circle Packing"

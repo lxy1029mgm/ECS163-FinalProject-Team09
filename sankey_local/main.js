@@ -211,7 +211,14 @@ svg.append("text")
   .attr("font-size", "11px")
   .attr("fill", "#666")
   .text("Hover over a flow to see count and percentages. Click a node/name to show an image. Click a flow to focus its path. Click blank space to reset.");
-
+// Readability note
+svg.append("text")
+  .attr("x", width / 2)
+  .attr("y", height - 24)
+  .attr("text-anchor", "middle")
+  .attr("font-size", "11px")
+  .attr("fill", "#888")
+  .text("Note: For readability, only the top 30 families are shown, so some smaller classes are not displayed.");
 // Create Sankey layout
 const sankey = d3.sankey()
   .nodeWidth(16)
