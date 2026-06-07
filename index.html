@@ -809,7 +809,13 @@
                 mapVm.close_side_bar();
                 draw_map(false, mapVm.filter_mode, mapVm.view_mode);
             },
+            focusSpecies(species) {
+                if (!species) return;
+                window.MapCrossGraphPendingSpecies = species;
+                this.focusClass(species.filterName || species.imageKey || species.name);
+            },
             reset() {
+                window.MapCrossGraphPendingSpecies = null;
                 mapVm.filter_mode = Array.from(mapVm.filter_mode_set || []);
                 mapVm.close_side_bar();
                 draw_map(false, mapVm.filter_mode, mapVm.view_mode);
