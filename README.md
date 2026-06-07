@@ -1,5 +1,44 @@
 ## Description 
 - Clearly describe the repository components and structures in a few paragraphs
+- ## Repository Structure
+
+## Repository Structure
+
+```text
+ECS163-FinalProject-Team09/
+│
+├── README.md                   # Project documentation
+├── index.html                  # Main webpage entry point
+├── continents2.csv             # Processed continent-related data
+├── extinction.csv              # Processed extinction dataset
+├── local-image-map.js          # Mapping file for local image paths
+├── species-image-map.js        # Mapping file for species image paths
+│
+├── config/                     # Configuration files for shared visualization settings
+│   ├── global_config.js
+│   └── map_config.js
+│
+├── images/                     # Image files used by the visualization
+│
+├── js/                         # JavaScript files for interaction and visualization
+│   ├── bubble.js
+│   ├── cross_graph.js
+│   ├── map.js
+│   ├── sankey.js
+│   └── timeline.js
+│
+├── sankey_local/               # Local Sankey-related files and supporting resources
+│   ├── images/
+│   ├── vendor/
+│   ├── index.html
+│   ├── local-image-map.js
+│   ├── main.js
+│   └── merged_cleaned_with_clean_lab...
+│
+└── vendor/                     # External JavaScript libraries
+    ├── d3.v5.min.js
+    └── d3-sankey.min.js
+```
 
 ## Installation 
 To run this project locally, ensure you have a modern web browser and a local development environment installed.
