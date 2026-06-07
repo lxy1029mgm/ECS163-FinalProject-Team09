@@ -89,7 +89,9 @@ function makeControls(){
             const checkbox = this;
 
             if(checkbox.checked){
-                activeLines.push(d.key);
+                if(activeLines.indexOf(d.key) === -1){
+                    activeLines.push(d.key);
+                }
             } else {
                 activeLines = activeLines.filter(function(key){
                     return key !== d.key;
@@ -111,7 +113,17 @@ function makeControls(){
         });
 }
 
+function syncLineControls(){
+    d3.select("#multiline-controls")
+        .selectAll("input")
+        .property("checked", function(d){
+            return activeLines.indexOf(d.key) !== -1;
+        });
+}
+
 function drawChart(){
+    syncLineControls();
+
     const svg = d3.select("#multiline-chart");
     const tooltip = d3.select("#multiline-tooltip");
 
