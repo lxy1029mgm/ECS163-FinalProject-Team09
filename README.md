@@ -34,11 +34,11 @@ ECS163-FinalProject-Team09/
     ├── d3.v5.min.js
     └── d3-sankey.min.js
 
+```
 The project components work together through `index.html`, which loads the datasets, configuration files, JavaScript scripts, and image resources. The CSV files provide the processed extinction data, while the JavaScript files read the data and render different visualizations on the webpage.
 The configuration files help keep shared settings consistent, and the image mapping files connect species records with their corresponding image assets.
 
 The cross-interaction between visual components. The interaction links different charts together so that when users select or focus on one data item, related information can be reflected in other views. This helps users compare extinction patterns across multiple visual sections instead of reading each chart separately.
-```
 
 ## Installation 
 To run this project locally, ensure you have a modern web browser and a local development environment installed.
