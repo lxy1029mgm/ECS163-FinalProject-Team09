@@ -192,7 +192,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
             .attr("stroke-width", 0.1)
             .attr("fill", d => {
                 const value = processed_data.find(cell => +cell.country_id === +d.id);
-                return value ? color(value["num_extinct"]) : "#FFFFFF";
+                return value && value["num_extinct"] > 0 ? color(value["num_extinct"]) : "#FFFFFF";
             });
 
             //when mouseenter show information about the country/region information
@@ -352,7 +352,7 @@ export function draw_map(is_resize, filter_mode, view_mode){
                 .attr("fill", d => {
                     target = processed_data.find(item => +item["country_id"] === +geoData["id"]);
                     country_id = target ? target["country_id"] : -1;
-                    return target ? color(target["num_extinct"]) : "#FFFFFF";
+                    return target && target["num_extinct"] > 0 ? color(target["num_extinct"]) : "#FFFFFF";
                 })
                 .attr("stroke", "black")
                 .attr("stroke-width", 0.1)
