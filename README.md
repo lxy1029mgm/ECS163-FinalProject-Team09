@@ -1,5 +1,4 @@
 ## Description 
-- Clearly describe the repository components and structures in a few paragraphs
 - ## Repository Structure
 ```text
 ECS163-FinalProject-Team09/
@@ -56,7 +55,6 @@ cd ECS163-FinalProject-Team09
 Please keep all downloaded project files in the same folder structure as the repository. The image assets and frontend files need to stay in their original relative locations so that the webpage can load images and other resources correctly.
 
 ## Execution 
-- How to run a demo on your code, including running data preprocessing scripts and frontend scripts.
 
 Launch VS Code.  
 Open the cloned project folder (`ECS163-FinalProject-Team09`) in the editor space via `File > Open Folder`.  
