@@ -591,6 +591,7 @@
 
     <section id="map-section">
         <div class="section-intro">
+            <!-- introduction about map -->
             <h2>Mapping the Void</h2>
             <p>
                 Extinction leaves a scar on the map. From the isolated islands of the Pacific to the 
@@ -598,11 +599,13 @@
                 footprint of human expansion.
             </p>
         </div>
+        <!-- graph drawing here -->
         <div class="chart-container">
             <svg id="map-container" width="100%" height="100%">
                 <g class="map-base"></g>
                 <g class="map-overlay" style="display: none;"></g>
             </svg>
+            <!-- define buttons on map -->
             <button class="switch-button" @click.stop="handle_view_mode_change">
                 <img src="./images/switch.png" width="75%" height="75%">
             </button>
@@ -612,6 +615,7 @@
             <button class="refresh-button" @click.stop="map_refresh">
                 <img src="./images/refresh.png" width="100%" height="75%">
             </button>
+            <!-- define information sidebar -->
             <div id="map-sidebar" class="sidebar-hide">
                 <button id="close-sidebar-but" @click.stop="close_side_bar()">✕</button>
                 <h2 id="sb-name">unknown</h2>
@@ -622,6 +626,7 @@
                 <div>Category: <span id="sb-category">unknown</span></div>
                 <div>Threaten: <span id="sb-threaten">unknown</span></div>
             </div>
+            <!-- define buttons' functionalities -->
             <div class="switch-title">{{view_mode ? "country-view" : "region-view"}}</div>
             <div class="map-filter" v-show="show_filter">
                 <el-checkbox-group v-model="filter_mode" @change="handle_filter_change" >
@@ -735,6 +740,7 @@
             },
             //methods triggered from html, such as @click.
             methods:{
+                // define elements to display in map filtering function
                 parse_filter(){
                     const NClass_name_col = global_config.NClass_name_col;
                     d3.csv(global_config.data_path).then(raw_data => { 
@@ -752,10 +758,12 @@
                     });
                 },
 
+                // if select and unselect elements in filter of the map, this function will trigger
                 handle_filter_change(selected_values){
                     draw_map(false, this.filter_mode, this.view_mode);
                 },
 
+                // if webpage resized, this function would refresh the graph to fit the size of box
                 handle_resize(){
                     if (this.resize_timer) clearTimeout(this.resize_timer);
                     this.resize_timer = setTimeout(() => {
@@ -763,17 +771,20 @@
                     }, 200);
                 },
 
+                // if view mode has changed, this function would refresh the graph and pass this.view_mode to map.js
                 handle_view_mode_change(){
                     this.view_mode = !this.view_mode;
                     draw_map(false, this.filter_mode, this.view_mode);
                 },
 
+                //if close button(X) has been clicked, it will close the sidebar
                 close_side_bar(){
                     d3.select("#map-sidebar")
                     .classed("sidebar-active", false)
                     .classed("sidebar-hide", true);
                 },
 
+                // if the refresh function on the map is triggered, this function will be called to refresh the graph
                 map_refresh(){
                     draw_map(false, this.filter_mode, this.view_mode);
                 }
