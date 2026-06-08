@@ -7,6 +7,7 @@ ECS163-FinalProject-Team09/
 ├── extinction.csv              # extinction dataset
 ├── local-image-map.js          # Mapping file for local image paths
 ├── species-image-map.js        # Mapping file for species image paths
+├── start.bat
 │
 ├── config/                     # Configuration files for shared visualization settings
 │   ├── global_config.js
@@ -40,6 +41,8 @@ The configuration files help keep shared settings consistent, and the image mapp
 The cross-interaction between visual components. The interaction links different charts together so that when users select or focus on one data item, related information can be reflected in other views. This helps users compare extinction patterns across multiple visual sections instead of reading each chart separately.
 
 ## Installation 
+To view the project remotely you can directly visit the website through link: [Team09_webpage_link](https://dfq-yang.github.io/ECS163_FinalProject_Team09/)
+
 To run this project locally, ensure you have a modern web browser and a local development environment installed.
 
 Code Editor: Visual Studio Code (VS Code) is recommended.  
@@ -56,7 +59,7 @@ Please keep all downloaded project files in the same folder structure as the rep
 
 ## Execution 
 
-Launch VS Code.  
+### Approach 1 (IDE): Launch VS Code.  
 Open the cloned project folder (`ECS163-FinalProject-Team09`) in the editor space via `File > Open Folder`.  
 Navigate through the file tree and find `index.html`.  
 Right-click on `index.html`, select `Open with Live Server`.  
@@ -72,3 +75,9 @@ Cross-Graph: Selections made in one view automatically update the others. Genera
 
 
 Make sure the project is opened from the repository root folder instead of opening `index.html` alone from another location. This helps the browser correctly find linked CSS, JavaScript, data, and image files during the demo.
+
+### Approach 2 (Windows System):
+If you are using Windows, you can directly run `start.bat` in the project's root folder to launch the process via PowerShell.
+
+### Approach 3 (Website):
+To view the project remotely you can directly visit the website through link: [Team09_webpage_link](https://dfq-yang.github.io/ECS163_FinalProject_Team09/)
