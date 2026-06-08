@@ -16,11 +16,11 @@ ECS163-FinalProject-Team09/
 ├── images/                     # Image files used by the visualization
 │
 ├── js/                         # JavaScript files for interaction and visualization
-│   ├── bubble.js
-│   ├── cross_graph.js
-│   ├── map.js
-│   ├── sankey.js
-│   └── timeline.js
+│   ├── bubble.js               # bubble graph for cause
+│   ├── cross_graph.js          #cross graph interaction
+│   ├── map.js                  # map for geographic distribution
+│   ├── sankey.js               # sankey diagram for taxonomy
+│   └── timeline.js             # timeline of extinction
 │
 ├── sankey_local/               # Sankey-related files
 │   ├── images/
@@ -69,6 +69,8 @@ http://127.0.0.1:5500/index.html
 ```
 
 Interactive features to explore:  
-Sequential Narrative Scroll:
+Generally, click or hover for species images and details. Filter functions in timeline, map, and sankey. Zoom in and out function in map, bubble.
+Cross-Graph: Selections made in one view automatically update the others. Generally reacts at class-level; Bubble and Map can react with Timeline at species-level
+
 
 Make sure the project is opened from the repository root folder instead of opening `index.html` alone from another location. This helps the browser correctly find linked CSS, JavaScript, data, and image files during the demo.
